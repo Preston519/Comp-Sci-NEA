@@ -14,5 +14,5 @@ class Graph:
 connection = sqlite3.connect("students.db")
 cursor = connection.cursor()
 response = cursor.execute("SELECT name FROM sqlite_master")
-cursor.execute("CREATE TABLE movie(title, year, score)")
-print(response.fetchone())
+# cursor.execute("CREATE TABLE movie(title, year, score)")
+print(response.fetchall())
