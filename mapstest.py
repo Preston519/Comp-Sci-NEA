@@ -8,6 +8,6 @@ print(gmaps.reverse_geocode((40.714224, -73.961452))[0]["formatted_address"])
 #                                                     locality='Mountain View', 
 #                                                     enableUspsCass=True))
 print(gmaps.directions("Sydney Town Hall",
-                                     "Parramatta, NSW",
+                                     "aldkd",
                                      mode="transit",
                                      departure_time=datetime.datetime.now()))
