@@ -7,9 +7,16 @@ class Graph:
         self.graph = graph
 
     def add_edge(self, node1, node2, weight): # A directed link from node1 to node2
+        """Adds an edge on the graph, directed from node1 to node2"""
         if node1 not in self.graph:
             self.graph[node1] = {}
         self.graph[node1][node2] = weight
+
+    def calc_distance(self, route: list):
+        """Adds up all the weights of one route"""
+        distance = 0
+        for address_index in range(len(route)-1):
+            distance += self.graph[route[address_index]][route[address_index+1]]
 
 def main():
     while True:
@@ -41,7 +48,7 @@ def main():
                 print("Invalid address input")
                 sys.exit()
             address_map.add_edge(address, address2, weight)
-    print(address_map.graph)
+    return address_map.graph
 
 if __name__ == "__main__":
     main()
