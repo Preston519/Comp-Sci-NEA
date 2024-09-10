@@ -11,4 +11,4 @@ gmaps = googlemaps.Client(key="AIzaSyDE2qaxHADLeBQO1zLqfDIasLOalcHWHi0")
 #                                      "aldkd",
 #                                      mode="transit",
 #                                      departure_time=datetime.datetime.now()))
-print(gmaps.directions("20 Parsons Mead, Abingdon, Oxfordshire", "8 Morgan Vale, Abingdon, Oxfordshire", mode="driving")[0]["legs"])
+print(gmaps.directions("20 Parsons Mead, Abingdon, Oxfordshire", "Taldysai Village, Kazakhstan", mode="driving"))
