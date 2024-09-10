@@ -18,7 +18,7 @@ class Graph:
         for address_index in range(len(route)-1):
             distance += self.graph[route[address_index]][route[address_index+1]]
 
-def main():
+def create_graph():
     while True:
         sortparam = input("Make routes based on (D)istance or (T)ime?").upper()
         if sortparam == "D":
@@ -34,7 +34,7 @@ def main():
     response = cursor.execute("SELECT Address FROM addresses")
     # cursor.execute("CREATE TABLE movie(title, year, score)")
     # print(response.fetchall()[0][0])
-    nodes = list(map(lambda x: x[0], response.fetchall()))
+    nodes = list(map(lambda x: x[0], response.fetchall())) + ["Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ"]
     address_map = Graph()
     # print(list(nodes))
     for address in nodes:
@@ -51,4 +51,4 @@ def main():
     return address_map.graph
 
 if __name__ == "__main__":
-    main()
+    print(create_graph())
