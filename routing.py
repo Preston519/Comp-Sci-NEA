@@ -5,8 +5,8 @@ import copy
 distances = create_graph()
 
 def nearestneighbour(graph, max_capacity = 20):
-    # num_points = len(graph)
-    graphcopy = copy.deepcopy(graph)
+    num_points = len(graph.graph)
+    graphcopy = copy.deepcopy(graph.graph)
     graphcopy: dict[dict]
     # visited = np.zeros(num_points, dtype=bool)
     # routes = []
@@ -24,14 +24,22 @@ def nearestneighbour(graph, max_capacity = 20):
     # visited = [False]*num_points
     current = "Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ"
     route = [current]
-    while len(graphcopy) > 0:
+    while len(route) < num_points:
         # graphcopy[current]: dict
+        # print(graphcopy)
+        # print(graphcopy[current])
+        for point in graphcopy:
+            if current in graphcopy[point]:
+                graphcopy[point].pop(current)
         nearest = min(graphcopy[current], key=graphcopy[current].get)
         graphcopy.pop(current)
         route.append(nearest)
         current = nearest
         # nearest = None
         # min_dist = float("inf")
+    route.append("Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ")
     return route
-    
-print(nearestneighbour(distances))
+
+nn_route = nearestneighbour(distances)
+print(nn_route)
+print(distances.calc_distance(nn_route))

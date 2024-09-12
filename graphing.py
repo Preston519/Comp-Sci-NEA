@@ -17,6 +17,7 @@ class Graph:
         distance = 0
         for address_index in range(len(route)-1):
             distance += self.graph[route[address_index]][route[address_index+1]]
+        return f"{distance//1000}km {distance%1000}m"
 
 def create_graph():
     while True:
@@ -48,7 +49,7 @@ def create_graph():
                 print("Invalid address input")
                 sys.exit()
             address_map.add_edge(address, address2, weight)
-    return address_map.graph
+    return address_map
 
 if __name__ == "__main__":
     print(create_graph())
