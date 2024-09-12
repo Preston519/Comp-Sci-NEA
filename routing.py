@@ -4,7 +4,9 @@ import copy
 
 distances = create_graph()
 
-def nearestneighbour(graph, max_capacity = 20):
+# Constructive Heuristics
+
+def nearestneighbour(graph: Graph, max_capacity = 20):
     num_points = len(graph.graph)
     graphcopy = copy.deepcopy(graph.graph)
     graphcopy: dict[dict]
@@ -39,6 +41,23 @@ def nearestneighbour(graph, max_capacity = 20):
         # min_dist = float("inf")
     route.append("Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ")
     return route
+
+def sweep(graph, max_capacity=20):
+    pass
+
+
+# Improvement Heuristics
+
+def two_opt_swap(route: list, first: int, second: int):
+    new_route = [None]*len(route)
+    new_route[:first+1] = route[:first+1]
+    new_route[second:] = route[second:]
+    new_route[first+1:second] = route[first+1:second:-1]
+    return new_route
+
+def two_opt(graph: Graph, route: list):
+    new_distance = float('inf')
+    best_distance = graph.calc_distance(route)
 
 nn_route = nearestneighbour(distances)
 print(nn_route)
