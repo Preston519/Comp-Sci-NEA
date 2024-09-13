@@ -17,6 +17,7 @@ class Graph:
         distance = 0
         for address_index in range(len(route)-1):
             distance += self.graph[route[address_index]][route[address_index+1]]
+            print(route[address_index])
         return f"{distance//1000}km {distance%1000}m"
 
 def create_graph():

@@ -3,11 +3,11 @@ import numpy as np
 import copy
 
 distances = create_graph()
+num_points = len(distances.graph)
 
 # Constructive Heuristics
 
 def nearestneighbour(graph: Graph, max_capacity = 20):
-    num_points = len(graph.graph)
     graphcopy = copy.deepcopy(graph.graph)
     graphcopy: dict[dict]
     # visited = np.zeros(num_points, dtype=bool)
@@ -55,10 +55,20 @@ def two_opt_swap(route: list, first: int, second: int):
     new_route[first+1:second] = route[first+1:second:-1]
     return new_route
 
-def two_opt(graph: Graph, route: list):
+def two_opt(graph: Graph, route: list): # Input route should always start and end with Abingdon School
     new_distance = float('inf')
     best_distance = graph.calc_distance(route)
+    current_route = route
+    for i in range(len(route[:-1])):
+        for j in range(len(route[i+1:-1])):
+            new_route = two_opt_swap(current_route, i, j+i+1)
+            new_distance = graph.calc_distance(new_route)
+            if new_distance < best_distance:
+                current_route = new_route
+                best_distance = new_distance
+    return new_route
 
 nn_route = nearestneighbour(distances)
 print(nn_route)
 print(distances.calc_distance(nn_route))
+print(two_opt(distances, nn_route))
