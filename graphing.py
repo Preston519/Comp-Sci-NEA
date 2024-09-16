@@ -16,8 +16,9 @@ class Graph:
         """Adds up all the weights of one route"""
         distance = 0
         for address_index in range(len(route)-1):
+            # print(address_index)
+            # print(route[address_index])
             distance += self.graph[route[address_index]][route[address_index+1]]
-            print(route[address_index])
         return f"{distance//1000}km {distance%1000}m"
 
 def create_graph():

@@ -52,16 +52,24 @@ def two_opt_swap(route: list, first: int, second: int):
     new_route = [None]*len(route)
     new_route[:first+1] = route[:first+1]
     new_route[second:] = route[second:]
-    new_route[first+1:second] = route[first+1:second:-1]
+    # print("dd")
+    # print(new_route)
+    new_route[first+1:second] = reversed(route[first+1:second])
+    # new_route = list()
+    # new_route.append(route[:first+1])
+    # new_route.append(reversed)
+    # print(new_route)
+    # print(first, second)
     return new_route
 
 def two_opt(graph: Graph, route: list): # Input route should always start and end with Abingdon School
     new_distance = float('inf')
     best_distance = graph.calc_distance(route)
     current_route = route
-    for i in range(len(route[:-1])):
+    for i in range(len(route[1:-2])):
         for j in range(len(route[i+1:-1])):
-            new_route = two_opt_swap(current_route, i, j+i+1)
+            new_route = two_opt_swap(current_route, i+1, j+i+2)
+            # print(new_route)
             new_distance = graph.calc_distance(new_route)
             if new_distance < best_distance:
                 current_route = new_route
