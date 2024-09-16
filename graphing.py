@@ -23,7 +23,7 @@ class Graph:
 
 def create_graph():
     while True:
-        sortparam = input("Make routes based on (D)istance or (T)ime?").upper()
+        sortparam = input("Make routes based on (D)istance or (T)ime? ").upper()
         if sortparam == "D":
             sortingmethod = "distance"
             break

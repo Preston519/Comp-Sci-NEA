@@ -2,6 +2,7 @@ from graphing import *
 import numpy as np
 import copy
 
+max_cap = int(input("Enter the maximum capacity of one bus: "))
 distances = create_graph()
 num_points = len(distances.graph)
 
@@ -25,21 +26,25 @@ def nearestneighbour(graph: Graph, max_capacity = 20):
     #         for neighbour in np.where(~visited)
     # visited = [False]*num_points
     current = "Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ"
+    capacity = max_capacity
     route = [current]
-    while len(route) < num_points:
-        # graphcopy[current]: dict
-        # print(graphcopy)
-        # print(graphcopy[current])
-        for point in graphcopy:
-            if current in graphcopy[point]:
-                graphcopy[point].pop(current)
-        nearest = min(graphcopy[current], key=graphcopy[current].get)
+    while graphcopy:
+        while len(route) < max_capacity+1:
+            # graphcopy[current]: dict
+            # print(graphcopy)
+            # print(graphcopy[current])
+            for point in graphcopy:
+                if current in graphcopy[point]:
+                    graphcopy[point].pop(current)
+            nearest = min(graphcopy[current], key=graphcopy[current].get)
+            graphcopy.pop(current)
+            route.append(nearest)
+            current = nearest
+            # nearest = None
+            # min_dist = float("inf")
         graphcopy.pop(current)
-        route.append(nearest)
-        current = nearest
-        # nearest = None
-        # min_dist = float("inf")
     route.append("Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ")
+    print(graphcopy)
     return route
 
 def sweep(graph, max_capacity=20):
