@@ -10,6 +10,9 @@ num_points = len(distances.graph)
 
 def nearestneighbour(graph: Graph, max_capacity = 20):
     graphcopy = copy.deepcopy(graph.graph)
+    for point in graphcopy:
+            if "Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ" in graphcopy[point]:
+                graphcopy[point].pop("Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ")
     graphcopy: dict[dict]
     # visited = np.zeros(num_points, dtype=bool)
     # routes = []
@@ -25,27 +28,37 @@ def nearestneighbour(graph: Graph, max_capacity = 20):
 
     #         for neighbour in np.where(~visited)
     # visited = [False]*num_points
-    current = "Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ"
-    capacity = max_capacity
-    route = [current]
-    while graphcopy:
-        while len(route) < max_capacity+1:
+    # capacity = max_capacity
+    routes = []
+    while len(graphcopy) > 1:
+        current = "Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ"
+        route = [current]
+        while len(route) < max_capacity+1 and graphcopy[current]:
             # graphcopy[current]: dict
             # print(graphcopy)
             # print(graphcopy[current])
+            # for point in graphcopy:
+            #     if current in graphcopy[point]:
+            #         graphcopy[point].pop(current)
+            # print(graphcopy[current])
+            nearest = min(graphcopy[current], key=graphcopy[current].get)
+            if current != "Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ":
+                graphcopy.pop(current)
+            route.append(nearest)
+            current = nearest
             for point in graphcopy:
                 if current in graphcopy[point]:
                     graphcopy[point].pop(current)
-            nearest = min(graphcopy[current], key=graphcopy[current].get)
-            graphcopy.pop(current)
-            route.append(nearest)
-            current = nearest
             # nearest = None
             # min_dist = float("inf")
+            # print(route)
+        print(route)
+        print(graphcopy)
         graphcopy.pop(current)
-    route.append("Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ")
-    print(graphcopy)
-    return route
+        route.append("Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ")
+        routes.append(route)
+    # print(graphcopy)
+    return routes
 
 def sweep(graph, max_capacity=20):
     pass
@@ -84,7 +97,8 @@ def two_opt(graph: Graph, route: list): # Input route should always start and en
                 best_distance = new_distance
     return new_route
 
-nn_route = nearestneighbour(distances)
+nn_route = nearestneighbour(distances, max_cap)
 print(nn_route)
-print(distances.calc_distance(nn_route))
-print(two_opt(distances, nn_route))
+for route in nn_route:
+    print(distances.calc_distance(route))
+    # print(two_opt(distances, route))
