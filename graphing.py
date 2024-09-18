@@ -3,8 +3,9 @@ import googlemaps
 import sys
 
 class Graph:
-    def __init__(self, graph: dict = {}):
+    def __init__(self, graph: dict = {}, nodes: list = []):
         self.graph = graph
+        self.nodes = nodes
 
     def add_edge(self, node1, node2, weight): # A directed link from node1 to node2
         """Adds an edge on the graph, directed from node1 to node2"""
@@ -38,7 +39,7 @@ def create_graph():
     # cursor.execute("CREATE TABLE movie(title, year, score)")
     # print(response.fetchall()[0][0])
     nodes = list(map(lambda x: x[0], response.fetchall())) + ["Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ"]
-    address_map = Graph()
+    address_map = Graph(nodes=nodes)
     # print(list(nodes))
     for address in nodes:
         # print(address)
