@@ -54,4 +54,4 @@ def create_graph():
     return address_map
 
 if __name__ == "__main__":
-    print(create_graph())
+    print(create_graph().graph)
