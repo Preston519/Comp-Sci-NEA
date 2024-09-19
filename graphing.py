@@ -3,9 +3,10 @@ import googlemaps
 import sys
 
 class Graph:
-    def __init__(self, graph: dict = {}, nodes: list = []):
+    def __init__(self, graph: dict = {}, nodes: list = [], depot: str = "Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ"):
         self.graph = graph
         self.nodes = nodes
+        self.depot = depot
 
     def add_edge(self, node1, node2, weight): # A directed link from node1 to node2
         """Adds an edge on the graph, directed from node1 to node2"""

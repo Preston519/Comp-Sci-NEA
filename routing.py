@@ -44,14 +44,15 @@ def saving(graph: Graph, max_capacity=20): # The most well known VRP heuristic!
     graphcopy = copy.deepcopy(graph.graph)
     nodescopy = copy.deepcopy(graph.nodes)
     routes = list([point] for point in graphcopy)
-    savings = generate_savings(graph, routes)
+    savings = generate_savings(graph)
 
-def generate_savings(graphcopy, routes):
+def generate_savings(graph: Graph):
     savings = dict()
-    for routenum in range(len(routes)):
-        for route2 in routes[routenum+1:]:
+    for nodenum in range(len(graph.nodes)):
+        for node2 in graph.nodes[nodenum+1:]:
             # if routes[routenum] != route2: # Should never be equal?
-            savings[(routes[routenum][0], route2[0])]
+            savings[(graph.nodes[nodenum], node2)] = graph.graph[graph.nodes[nodenum]][graph.depot] + graph.graph[graph.depot][node2] - graph.graph[graph.nodes[nodenum]][node2]
+    return savings
 
 
 
