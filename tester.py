@@ -1,1 +1,2 @@
-print("Hello World")
+dk = (None, None)
+print(len(dk))

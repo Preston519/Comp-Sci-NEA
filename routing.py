@@ -45,6 +45,20 @@ def saving(graph: Graph, max_capacity=20): # The most well known VRP heuristic!
     nodescopy = copy.deepcopy(graph.nodes)
     routes = list([point] for point in graphcopy)
     savings = generate_savings(graph)
+    while savings:
+        current = max(savings, key=savings.get)
+        in_routes = is_in_route(current, routes)
+        if not in_routes[0] and not in_routes[1]:
+            routes.pop([current[1]])
+            routes[routes.index[current[0]]].append(current[1])
+        
+def is_in_route(pair: tuple, routes: list):
+    indexes = [None, None]
+    for num in range(2):
+        for route in routes:
+            if pair[num] in route and len(route) > 1:
+                indexes[num] = routes.index(route)
+    return indexes
 
 def generate_savings(graph: Graph):
     savings = dict()
