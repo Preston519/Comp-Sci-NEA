@@ -81,12 +81,12 @@ def two_opt(graph: Graph, route: list): # Input route should always start and en
     return current_route
 
 if __name__ == "__main__":
-    # nn_route = nearestneighbour(distances, max_cap)
-    # for route in nn_route:
-    #     print(route)
-    #     print(distances.calc_distance(route))
-    #     topt_route = two_opt(distances, route)
-    #     print(topt_route)
-    #     print(distances.calc_distance(topt_route))
-    sav_route = saving(distances, max_cap)
-    print(sav_route)
+    nn_route = nearestneighbour(distances, max_cap)
+    for route in nn_route:
+        print(route)
+        print(distances.calc_distance(route))
+        topt_route = two_opt(distances, route)
+        print(topt_route)
+        print(distances.calc_distance(topt_route))
+    # sav_route = saving(distances, max_cap)
+    # print(sav_route)
