@@ -1,2 +1,3 @@
-dk = (None, None)
-print(len(dk))
+dk = 5
+
+print(not(dk == 3 or dk == 4))
