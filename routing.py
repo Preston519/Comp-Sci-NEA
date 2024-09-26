@@ -1,6 +1,7 @@
 from graphing import *
-import numpy as np
+# import numpy as np
 import copy
+import sqlite3
 
 # depot = "Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ"
 max_cap = int(input("Enter the maximum capacity of one bus: "))
@@ -16,16 +17,16 @@ num_points = len(distances.graph)
 def nearestneighbour(graph: Graph, max_capacity = 20): # TODO: don't use deepcopy. Very space inefficient. Use visited list instead.
     graphcopy = copy.deepcopy(graph.graph)
     for point in graphcopy:
-            if depot in graphcopy[point]:
-                graphcopy[point].pop(depot)
+            if graph.depot in graphcopy[point]:
+                graphcopy[point].pop(graph.depot)
     graphcopy: dict[dict]
     routes = []
     while len(graphcopy) > 1:
-        current = depot
+        current = graph.depot
         route = [current]
         while len(route) < max_capacity+1 and graphcopy[current]:
             nearest = min(graphcopy[current], key=graphcopy[current].get)
-            if current != depot:
+            if current != graph.depot:
                 graphcopy.pop(current)
             route.append(nearest)
             current = nearest
@@ -33,7 +34,7 @@ def nearestneighbour(graph: Graph, max_capacity = 20): # TODO: don't use deepcop
                 if current in graphcopy[point]:
                     graphcopy[point].pop(current)
         graphcopy.pop(current)
-        route.append(depot)
+        route.append(graph.depot)
         routes.append(route)
     return routes
 
@@ -44,17 +45,20 @@ def saving(graph: Graph, max_capacity=20): # The most well known VRP heuristic!
     graphcopy = copy.deepcopy(graph.graph)
     nodescopy = copy.deepcopy(graph.nodes)
     depot = graph.depot
-    routes = list([point] for point in graphcopy)
+    routes = list([node] for node in nodescopy)
+    # print(routes)
     savings = generate_savings(graph)
+    # print(savings)
     while savings:
         current = max(savings, key=savings.get)
         in_route, indexes = is_in_route(current, routes) # Ignore the pair if one or more of the nodes are already interior to a route, because a more optimal saving has already been made
-        if is_interior(current[1], routes[indexes[1]]) or is_interior(current[0], routes[indexes[0]]):
+        if is_interior(current[1], routes[indexes[1]]) or is_interior(current[0], routes[indexes[0]]) or any(len(routes[index]) >= max_capacity for index in indexes):
             savings.pop(current)
             continue
         if not in_route[0] and not in_route[1]: # If neither node is in an existing route
-            routes.pop([current[1]])
-            routes[routes.index[current[0]]].append(current[1])
+            routes.pop(routes.index([current[1]]))
+            # print(routes)
+            routes[routes.index([current[0]])].append(current[1])
         elif not in_route[0]: # If only one node is in an existing route, for both nodes
             if routes[indexes[1]].index(current[1]) == 0:
                 routes[indexes[1]].insert(0, current[0])
@@ -82,7 +86,7 @@ def merge(route0, route1, link):
     if route1.index(link[1]) != len(route1)-1:
         route1.reverse()
     merged_route = route0 + route1
-    if distances.calc_distance(merged_route) > distances.calc_distance(reversed(merged_route)):
+    if distances.calc_distance(merged_route) > distances.calc_distance(list(reversed(merged_route))):
         merged_route.reverse()
     return merged_route
 
@@ -107,6 +111,7 @@ def generate_savings(graph: Graph):
         for node2 in graph.nodes[nodenum+1:]:
             # if routes[routenum] != route2: # Should never be equal?
             savings[(graph.nodes[nodenum], node2)] = graph.graph[graph.nodes[nodenum]][graph.depot] + graph.graph[graph.depot][node2] - graph.graph[graph.nodes[nodenum]][node2]
+            # print(nodenum)
     return savings
 
 
@@ -138,10 +143,17 @@ def two_opt(graph: Graph, route: list): # Input route should always start and en
 if __name__ == "__main__":
     # nn_route = nearestneighbour(distances, max_cap)
     # for route in nn_route:
+        # print(route)
+        # print(distances.calc_distance(route))
+        # topt_route = two_opt(distances, route)
+        # print(topt_route)
+        # print(distances.calc_distance(topt_route))
+    sav_routes = saving(distances, max_cap)
+    # print(sav_routes)
+    # for route in sav_routes:
     #     print(route)
     #     print(distances.calc_distance(route))
-    #     topt_route = two_opt(distances, route)
-    #     print(topt_route)
-    #     print(distances.calc_distance(topt_route))
-    sav_routes = saving(distances, max_cap)
-    print(sav_routes)
+    connection = sqlite3.connect("students.db")
+    cursor = connection.cursor()
+    for routeID in range(len(sav_routes)):
+        cursor.execute("INSERT INTO ")
