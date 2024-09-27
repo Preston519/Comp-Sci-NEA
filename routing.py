@@ -149,11 +149,11 @@ if __name__ == "__main__":
         # print(topt_route)
         # print(distances.calc_distance(topt_route))
     sav_routes = saving(distances, max_cap)
-    # print(sav_routes)
+    print(sav_routes)
     # for route in sav_routes:
     #     print(route)
     #     print(distances.calc_distance(route))
-    connection = sqlite3.connect("students.db")
-    cursor = connection.cursor()
-    for routeID in range(len(sav_routes)):
-        cursor.execute("INSERT INTO ")
+    # connection = sqlite3.connect("students.db")
+    # cursor = connection.cursor()
+    # for routeID in range(len(sav_routes)):
+    #     cursor.execute("INSERT INTO ")

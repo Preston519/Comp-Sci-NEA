@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Map Display</title>
+</head>
+<body>
+    <h1>Tester map thing</h1>
+  {% for route in embeds %}
+  <iframe
+    width="600"
+    height="400"
+    frameborder="0" style="border:0"
+    referrerpolicy="no-referrer-when-downgrade"
+    src={{route}}
+    allowfullscreen>
+  </iframe>
+  {% endfor %}
+  <!-- <iframe
+    width="600"
+    height="400"
+    frameborder="0" style="border:0"
+    referrerpolicy="no-referrer-when-downgrade"
+    src="https://www.google.com/maps/embed/v1/directions?key=AIzaSyDE2qaxHADLeBQO1zLqfDIasLOalcHWHi0&origin=Abingdon+School,Faringdon+Lodge,Abingdon+OX14+1BQ&destination=Abingdon+School,Faringdon+Lodge,Abingdon+OX14+1BQ&waypoints=20+Parsons+Mead,Abingdon,Oxfordshire|8+Morgan+Vale,Abingdon,Oxfordshire"
+    allowfullscreen>
+  </iframe> -->
+</body>
+</html>
