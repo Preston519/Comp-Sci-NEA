@@ -22,7 +22,8 @@ class Graph:
             # print(address_index)
             # print(route[address_index])
             distance += self.graph[route[address_index]][route[address_index+1]]
-        return f"{distance//1000}km {distance%1000}m"
+        # return f"{distance//1000}km {distance%1000}m"
+        return distance
 
 def create_graph():
     while True:
@@ -35,9 +36,9 @@ def create_graph():
             break
     gmaps = googlemaps.Client(key="AIzaSyDE2qaxHADLeBQO1zLqfDIasLOalcHWHi0")
     # gmaps = googlemaps.Client(key="AIza") # Key that doesn't work
-    connection = sqlite3.connect("students.db")
+    connection = sqlite3.connect("student.db")
     cursor = connection.cursor()
-    response = cursor.execute("SELECT Address FROM addresses")
+    response = cursor.execute("SELECT Address FROM students")
     # cursor.execute("CREATE TABLE movie(title, year, score)")
     # print(response.fetchall()[0][0])
     nodes = list(map(lambda x: x[0], response.fetchall())) + ["Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ"]
