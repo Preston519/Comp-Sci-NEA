@@ -5,8 +5,8 @@ import sqlite3
 
 # depot = "Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ"
 max_cap = int(input("Enter the maximum capacity of one bus: "))
-# distances = create_graph()
-distances = Graph({'20 Parsons Mead, Abingdon, Oxfordshire': {'8 Morgan Vale, Abingdon, Oxfordshire': 726, 'Taldysai Village, Kazakhstan': 5882537, 'Ashmolean Museum, Beaumont Street, Oxfordshire': 10978, '1 Hollow Way, Oxford, OX4 2LZ': 11709, '25 The Park, Cumnor, Oxford OX2 9QS': 6823, '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE': 13477, 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ': 1615}, '8 Morgan Vale, Abingdon, Oxfordshire': {'20 Parsons Mead, Abingdon, Oxfordshire': 665, 'Taldysai Village, Kazakhstan': 5883030, 'Ashmolean Museum, Beaumont Street, Oxfordshire': 11471, '1 Hollow Way, Oxford, OX4 2LZ': 12202, '25 The Park, Cumnor, Oxford OX2 9QS': 6355, '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE': 13009, 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ': 1616}, 'Taldysai Village, Kazakhstan': {'20 Parsons Mead, Abingdon, Oxfordshire': 5807898, '8 Morgan Vale, Abingdon, Oxfordshire': 5808452, 'Ashmolean Museum, Beaumont Street, Oxfordshire': 5801517, '1 Hollow Way, Oxford, OX4 2LZ': 5797593, '25 The Park, Cumnor, Oxford OX2 9QS': 5810391, '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE': 5820159, 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ': 5804516}, 'Ashmolean Museum, Beaumont Street, Oxfordshire': {'20 Parsons Mead, Abingdon, Oxfordshire': 11128, '8 Morgan Vale, Abingdon, Oxfordshire': 11682, 'Taldysai Village, Kazakhstan': 5877808, '1 Hollow Way, Oxford, OX4 2LZ': 6141, '25 The Park, Cumnor, Oxford OX2 9QS': 14342, '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE': 24110, 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ': 12571}, '1 Hollow Way, Oxford, OX4 2LZ': {'20 Parsons Mead, Abingdon, Oxfordshire': 11556, '8 Morgan Vale, Abingdon, Oxfordshire': 12110, 'Taldysai Village, Kazakhstan': 5872304, 'Ashmolean Museum, Beaumont Street, Oxfordshire': 6102, '25 The Park, Cumnor, Oxford OX2 9QS': 13899, '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE': 20553, 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ': 12999}, '25 The Park, Cumnor, Oxford OX2 9QS': {'20 Parsons Mead, Abingdon, Oxfordshire': 6746, '8 Morgan Vale, Abingdon, Oxfordshire': 6338, 'Taldysai Village, Kazakhstan': 5884538, 'Ashmolean Museum, Beaumont Street, Oxfordshire': 12979, '1 Hollow Way, Oxford, OX4 2LZ': 13710, '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE': 10842, 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ': 7697}, '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE': {'20 Parsons Mead, Abingdon, Oxfordshire': 13482, '8 Morgan Vale, Abingdon, Oxfordshire': 13075, 'Taldysai Village, Kazakhstan': 5894709, 'Ashmolean Museum, Beaumont Street, Oxfordshire': 23150, '1 Hollow Way, Oxford, OX4 2LZ': 23881, '25 The Park, Cumnor, Oxford OX2 9QS': 10765, 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ': 11206}, 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ': {'20 Parsons Mead, Abingdon, Oxfordshire': 1681, '8 Morgan Vale, Abingdon, Oxfordshire': 1630, 'Taldysai Village, Kazakhstan': 5878786, 'Ashmolean Museum, Beaumont Street, Oxfordshire': 12488, '1 Hollow Way, Oxford, OX4 2LZ': 13219, '25 The Park, Cumnor, Oxford OX2 9QS': 7728, '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE': 11338}})
+distances = create_graph()
+# distances = Graph({'20 Parsons Mead, Abingdon, Oxfordshire': {'8 Morgan Vale, Abingdon, Oxfordshire': 726, 'Taldysai Village, Kazakhstan': 5882537, 'Ashmolean Museum, Beaumont Street, Oxfordshire': 10978, '1 Hollow Way, Oxford, OX4 2LZ': 11709, '25 The Park, Cumnor, Oxford OX2 9QS': 6823, '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE': 13477, 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ': 1615}, '8 Morgan Vale, Abingdon, Oxfordshire': {'20 Parsons Mead, Abingdon, Oxfordshire': 665, 'Taldysai Village, Kazakhstan': 5883030, 'Ashmolean Museum, Beaumont Street, Oxfordshire': 11471, '1 Hollow Way, Oxford, OX4 2LZ': 12202, '25 The Park, Cumnor, Oxford OX2 9QS': 6355, '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE': 13009, 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ': 1616}, 'Taldysai Village, Kazakhstan': {'20 Parsons Mead, Abingdon, Oxfordshire': 5807898, '8 Morgan Vale, Abingdon, Oxfordshire': 5808452, 'Ashmolean Museum, Beaumont Street, Oxfordshire': 5801517, '1 Hollow Way, Oxford, OX4 2LZ': 5797593, '25 The Park, Cumnor, Oxford OX2 9QS': 5810391, '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE': 5820159, 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ': 5804516}, 'Ashmolean Museum, Beaumont Street, Oxfordshire': {'20 Parsons Mead, Abingdon, Oxfordshire': 11128, '8 Morgan Vale, Abingdon, Oxfordshire': 11682, 'Taldysai Village, Kazakhstan': 5877808, '1 Hollow Way, Oxford, OX4 2LZ': 6141, '25 The Park, Cumnor, Oxford OX2 9QS': 14342, '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE': 24110, 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ': 12571}, '1 Hollow Way, Oxford, OX4 2LZ': {'20 Parsons Mead, Abingdon, Oxfordshire': 11556, '8 Morgan Vale, Abingdon, Oxfordshire': 12110, 'Taldysai Village, Kazakhstan': 5872304, 'Ashmolean Museum, Beaumont Street, Oxfordshire': 6102, '25 The Park, Cumnor, Oxford OX2 9QS': 13899, '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE': 20553, 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ': 12999}, '25 The Park, Cumnor, Oxford OX2 9QS': {'20 Parsons Mead, Abingdon, Oxfordshire': 6746, '8 Morgan Vale, Abingdon, Oxfordshire': 6338, 'Taldysai Village, Kazakhstan': 5884538, 'Ashmolean Museum, Beaumont Street, Oxfordshire': 12979, '1 Hollow Way, Oxford, OX4 2LZ': 13710, '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE': 10842, 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ': 7697}, '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE': {'20 Parsons Mead, Abingdon, Oxfordshire': 13482, '8 Morgan Vale, Abingdon, Oxfordshire': 13075, 'Taldysai Village, Kazakhstan': 5894709, 'Ashmolean Museum, Beaumont Street, Oxfordshire': 23150, '1 Hollow Way, Oxford, OX4 2LZ': 23881, '25 The Park, Cumnor, Oxford OX2 9QS': 10765, 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ': 11206}, 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ': {'20 Parsons Mead, Abingdon, Oxfordshire': 1681, '8 Morgan Vale, Abingdon, Oxfordshire': 1630, 'Taldysai Village, Kazakhstan': 5878786, 'Ashmolean Museum, Beaumont Street, Oxfordshire': 12488, '1 Hollow Way, Oxford, OX4 2LZ': 13219, '25 The Park, Cumnor, Oxford OX2 9QS': 7728, '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE': 11338}})
 # To save on gmaps credit
 num_points = len(distances.graph)
 
@@ -107,10 +107,14 @@ def is_in_route(pair: tuple, routes: list):
 
 def generate_savings(graph: Graph):
     savings = dict()
-    for nodenum in range(len(graph.nodes)):
-        for node2 in graph.nodes[nodenum+1:]:
+    nodescopy = graph.nodes
+    # nodescopy.pop(graph.nodes.index(graph.depot))
+    print(nodescopy)
+    for nodenum in range(len(nodescopy)):
+        for node2 in nodescopy[nodenum+1:]:
             # if routes[routenum] != route2: # Should never be equal?
-            savings[(graph.nodes[nodenum], node2)] = graph.graph[graph.nodes[nodenum]][graph.depot] + graph.graph[graph.depot][node2] - graph.graph[graph.nodes[nodenum]][node2]
+            # print((nodenum, node2))
+            savings[(nodescopy[nodenum], node2)] = graph.graph[nodescopy[nodenum]][graph.depot] + graph.graph[graph.depot][node2] - graph.graph[nodescopy[nodenum]][node2]
             # print(nodenum)
     return savings
 
@@ -149,14 +153,17 @@ if __name__ == "__main__":
         # print(topt_route)
         # print(distances.calc_distance(topt_route))
     sav_routes = saving(distances, max_cap)
-    print(sav_routes)
+    # print(sav_routes)
     for route in sav_routes:
         print(route)
         print(distances.calc_distance(route))
     connection = sqlite3.connect("student.db")
     cursor = connection.cursor()
     for routeID in range(len(sav_routes)):
-        cursor.execute("INSERT INTO routes VALUES (?, ?, ?)", (routeID, sav_routes[routeID].calc_distance, len(sav_routes[routeID])))
+        cursor.execute("INSERT INTO routes VALUES (?, ?, ?)", (routeID, distances.calc_distance(sav_routes[routeID]), len(sav_routes[routeID])))
+        print(cursor.execute("SELECT * FROM routes").fetchall())
         for point in range(len(sav_routes[routeID][1:-1])):
-            # cursor.execute("INSERT INTO students (RouteNo, RouteOrder) VALUES (?, ?)", (point, ))
-            cursor.execute("UPDATE students SET RouteNo = '?', RouteOrder = '?' WHERE Address = '?'", (routeID, point+1, sav_routes[routeID][point+1]))
+            cursor.execute("UPDATE students SET RouteID = ?, RouteOrder = ? WHERE Address = ?", (routeID, point+1, sav_routes[routeID][point+1]))
+        print(routeID)
+    connection.commit() # ALWAYS COMMIT dangit
+    connection.close()

@@ -2,12 +2,13 @@ import sqlite3
 import googlemaps
 import sys
 
+depot = "Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ"
+
 class Graph:
     def __init__(self, graph: dict = {}, nodes: list = [], depot: str = "Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ"):
         self.graph = graph
         self.depot = depot
-        self.nodes = list(point for point in graph)
-        self.nodes.pop(self.nodes.index(self.depot))
+        self.nodes = nodes
 
     def add_edge(self, node1, node2, weight): # A directed link from node1 to node2
         """Adds an edge on the graph, directed from node1 to node2"""
@@ -41,8 +42,8 @@ def create_graph():
     response = cursor.execute("SELECT Address FROM students")
     # cursor.execute("CREATE TABLE movie(title, year, score)")
     # print(response.fetchall()[0][0])
-    nodes = list(map(lambda x: x[0], response.fetchall())) + ["Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ"]
-    address_map = Graph(nodes=nodes)
+    nodes = list(map(lambda x: x[0], response.fetchall())) + [depot]
+    address_map = Graph(nodes=nodes, depot=depot)
     # print(list(nodes))
     for address in nodes:
         # print(address)
@@ -55,6 +56,7 @@ def create_graph():
                 print("Invalid address input")
                 sys.exit()
             address_map.add_edge(address, address2, weight)
+    address_map.nodes.pop(address_map.nodes.index(address_map.depot))
     return address_map
 
 if __name__ == "__main__":
