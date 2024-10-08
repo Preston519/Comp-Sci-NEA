@@ -6,13 +6,13 @@
 </head>
 <body>
     <h1>Tester map thing</h1>
-  {% for route in range(len(maps)) %}
+  {% for route in maps %}
   <iframe
     width="600"
     height="400"
     frameborder="0" style="border:0"
     referrerpolicy="no-referrer-when-downgrade"
-    src={{maps[route]}}
+    src={{route}}
     allowfullscreen>
   </iframe>
 </br>

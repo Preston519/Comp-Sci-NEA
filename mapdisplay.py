@@ -11,11 +11,14 @@ map_routes = [
     ['Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ', '8 Farriers Mews, Abingdon, Oxfordshire', '8 Morgan Vale, Abingdon, Oxfordshire', '20 Parsons Mead, Abingdon, Oxfordshire', 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ']
 ]
 
+depot = "Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ"
+
 def fetch_data():
     # routes = []
     connection = sqlite3.connect("student.db")
     cursor = connection.cursor()
-    routes = [[None]] * len(cursor.execute("SELECT RouteID FROM routes").fetchall()-1)
+    routes = [[] for _ in range(len(cursor.execute("SELECT RouteID FROM routes").fetchall())-1)] # If you use multiplication here it does pointer magic and makes them all the same list
+    print(routes)
     data = []
     # for routeID in range(len(cursor.execute("SELECT RouteID FROM routes").fetchall())-1):
     #     response = cursor.execute("SELECT Address FROM students WHERE RouteID = ? ORDER BY RouteOrder ASC", (routeID,))
@@ -23,19 +26,25 @@ def fetch_data():
     #     response = cursor.execute("SELECT Distance FROM routes WHERE RouteID = ?")
     #     data.append((route, ))
     response = cursor.execute("SELECT RouteID, Address FROM students ORDER BY RouteID, RouteOrder").fetchall()
+    print("response:")
+    print(response)
     for address in response:
         routes[address[0]].append(address[1])
+        print("routes[address[0]]",routes[address[0]])
+        print("routes: ", routes)
     response = cursor.execute("SELECT Distance, Stops FROM routes WHERE RouteID != -1 ORDER BY RouteID").fetchall()
     for info in response:
         data.append(info)
-    # Do the thing where the list is predeclared like an array and then you can assign via enumerated variable cool done
-    return data
+    for route in routes:
+        route.insert(0, depot)
+        route.append(depot)
+    return data, routes
 
 def routes_to_embed(routes: list = []):
     embeds = []
     for route in routes:
         for address in route:
-            address: str
+            # address: str
             formatted = address.replace(", ", ",").replace(" ", "+")
             route[route.index(address)] = formatted
         embeds.append(f"https://www.google.com/maps/embed/v1/directions?key=AIzaSyDE2qaxHADLeBQO1zLqfDIasLOalcHWHi0&origin={route[0]}&destination={route[-1]}&waypoints={'|'.join(route[1:-1])}")
@@ -57,7 +66,7 @@ def mapdisplay():
     # cursor.execute
     data, embeds = fetch_data()
     embeds = routes_to_embed(embeds)
-    # print(embeds)
+    print(embeds)
     return render_template('mapdisplay.html', maps=embeds)
 
 if __name__ == "__main__":
