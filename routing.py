@@ -160,7 +160,7 @@ if __name__ == "__main__":
     connection = sqlite3.connect("student.db")
     cursor = connection.cursor()
     for routeID in range(len(sav_routes)):
-        cursor.execute("INSERT INTO routes VALUES (?, ?, ?)", (routeID, distances.calc_distance(sav_routes[routeID]), len(sav_routes[routeID])))
+        cursor.execute("INSERT INTO routes VALUES (?, ?, ?)", (routeID, distances.calc_distance(sav_routes[routeID]), len(sav_routes[routeID])-2))
         print(cursor.execute("SELECT * FROM routes").fetchall())
         for point in range(len(sav_routes[routeID][1:-1])):
             cursor.execute("UPDATE students SET RouteID = ?, RouteOrder = ? WHERE Address = ?", (routeID, point+1, sav_routes[routeID][point+1]))
