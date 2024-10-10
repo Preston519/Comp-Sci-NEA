@@ -13,6 +13,7 @@ class Graph:
         self.dist_graph = dist_graph
         self.depot = depot
         self.nodes = nodes
+        self.length = len(nodes)
 
     def add_dist_edge(self, node1, node2, weight):
         """Adds an edge on the distance graph, directed from node1 to node2"""
@@ -57,7 +58,7 @@ class Graph:
                 self.add_dist_edge(address, address2, weight)
                 weight = gmaps.directions(address, address2, mode="driving")[0]["legs"][0]["duration"]["value"]
                 self.add_time_edge(address, address2, weight)
-        self.nodes.pop(0) # Remove the first item, which should be the depot
+        # self.nodes.pop(0) # Remove the first item, which should be the depot
 
 class Route:
     def __init__(self, depot: str = "", route: list = [], distance: int = 0, time: int = 0):
@@ -119,3 +120,4 @@ def processing():
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=80)
+    # print(mapdisplay())
