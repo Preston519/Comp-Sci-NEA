@@ -70,14 +70,10 @@ def index_post():
         cursor.executemany("INSERT INTO students(StudentID, Name, Address, Year, RouteID) VALUES(?, ?, ?, ?, -1)", list(csvreader))
         connection.commit()
     os.remove(file.filename)
-    return "done"
-
-@app.route('/hello/')
-@app.route('/hello/<name>')
-def hello(name=''):
-    return render_template('hello.html', name=name)
+    return render_template('finished.html')
 
 @app.route('/maps/')
+@app.route('/maps')
 def mapdisplay():
     # connection = sqlite3.connect("student.db")
     # cursor = connection.cursor()

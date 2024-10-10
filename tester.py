@@ -1,6 +1,6 @@
-import csv
-with open("students.csv", newline="") as csvfile:
-    reader = csv.reader(csvfile)
-    # for row in reader:
-    #     print(row)
-    print(list(reader))
+import sqlite3
+
+connection = sqlite3.connect("student.db")
+cursor = connection.cursor()
+response = cursor.execute("SELECT Address FROM students")
+print(response.fetchall())

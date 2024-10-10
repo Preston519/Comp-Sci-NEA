@@ -5,8 +5,9 @@ import sys
 depot = "Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ"
 
 class Graph:
-    def __init__(self, graph: dict = {}, nodes: list = [], depot: str = "Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ"):
-        self.graph = graph
+    def __init__(self, time_graph: dict = {}, dist_graph: dict = {}, nodes: list = [], depot: str = "Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ"):
+        self.time_graph = time_graph
+        self.dist_graph = dist_graph
         self.depot = depot
         self.nodes = nodes
 
