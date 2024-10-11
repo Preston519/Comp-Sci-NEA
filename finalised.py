@@ -32,6 +32,7 @@ class Graph:
         distance = 0
         for address_index in range(len(route)-1):
             distance += self.dist_graph[route[address_index]][route[address_index+1]]
+        distance += self.dist_graph[self.depot][route[0]] + self.dist_graph[route[-1]][self.depot]
         # return f"{distance//1000}km {distance%1000}m"
         return distance
     
@@ -58,6 +59,7 @@ class Graph:
                 self.add_dist_edge(address, address2, weight)
                 weight = gmaps.directions(address, address2, mode="driving")[0]["legs"][0]["duration"]["value"]
                 self.add_time_edge(address, address2, weight)
+        self.nodes.pop(0)
         # self.nodes.pop(0) # Remove the first item, which should be the depot
 
 class Route:

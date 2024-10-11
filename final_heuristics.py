@@ -1,41 +1,34 @@
 from finalised import Graph
 
+testgraph = Graph(nodes=['Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ', '8 Farriers Mews, Abingdon, Oxfordshire', '1 Hollow Way, Oxford, OX4 2LZ', '8 Morgan Vale, Abingdon, Oxfordshire', '20 Parsons Mead, Abingdon, Oxfordshire', '25 The Park, Cumnor, Oxford OX2 9QS', '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE', 'Taldysai Village, Kazakhstan', 'Ashmolean Museum, Beaumont Street, Oxfordshire'])
+testgraph.create_graph()
+
 # Constructive Heuristics
 
-def nearestneighbour(graph: Graph, max_capacity = 20): # TODO: don't use deepcopy. Very space inefficient. Use visited list instead.
-    # graphcopy = copy.deepcopy(graph.graph)
-    # for point in graphcopy:
-    #         if graph.depot in graphcopy[point]:
-    #             graphcopy[point].pop(graph.depot)
+def nearestneighbour(graph: Graph, max_capacity = 5):
     unvisited = graph.nodes
-    unvisited.pop(0)
-    # graphcopy: dict[dict]
+    # unvisited.pop(0)
     routes = []
     while len(unvisited) > 0:
-        current = sorted(unvisited, key=graph.dist_graph[graph.depot].get)
+        current = sorted(unvisited, key=graph.dist_graph[graph.depot].get)[0]
         route = [current]
-        while len(route) < max_capacity+1 and graph[current]:
-            nearest = min(graphcopy[current], key=graphcopy[current].get)
-            if current != graph.depot:
-                graphcopy.pop(current)
+        while len(route) < max_capacity and len(unvisited) > 1:
+            unvisited.pop(unvisited.index(current))
+            nearest = min(unvisited, key=graph.dist_graph[current].get)
             route.append(nearest)
             current = nearest
-            for point in graphcopy:
-                if current in graphcopy[point]:
-                    graphcopy[point].pop(current)
-        graphcopy.pop(current)
-        route.append(graph.depot)
+        unvisited.pop(unvisited.index(current))
         routes.append(route)
     return routes
 
 def sweep(graph, max_capacity=20):
-    pass
+    raise NotImplementedError
 
-def saving(graph: Graph, max_capacity=20): # The most well known VRP heuristic!
-    graphcopy = copy.deepcopy(graph.graph)
-    nodescopy = copy.deepcopy(graph.nodes)
-    depot = graph.depot
-    routes = list([node] for node in nodescopy)
+def saving(graph: Graph, max_capacity=5): # The most well known VRP heuristic!
+    # graphcopy = copy.deepcopy(graph.graph)
+    # nodescopy = copy.deepcopy(graph.nodes)
+    # graph.depot = graph.depot
+    routes = list([node] for node in graph.nodes)
     # print(routes)
     savings = generate_savings(graph)
     # print(savings)
@@ -62,21 +55,21 @@ def saving(graph: Graph, max_capacity=20): # The most well known VRP heuristic!
                 routes[indexes[0]].append(current[1])
             routes.pop(indexes[1])
         elif not(indexes[0] == indexes[1]): # If both nodes are in two different existing routes
-            routes[indexes[0]] = merge(routes[indexes[0]], routes[indexes[1]], current)
+            routes[indexes[0]] = merge(graph, routes[indexes[0]], routes[indexes[1]], current)
             routes.pop(indexes[1])
         savings.pop(current)
-    for route in routes:
-        route.insert(0, depot)
-        route.append(depot)
+    # for route in routes:
+    #     route.insert(0, graph.depot)
+    #     route.append(graph.depot)
     return routes
 
-def merge(route0, route1, link):
+def merge(graph: Graph, route0: list, route1: list, link):
     if route0.index(link[0]) != len(route0)-1:
         route0.reverse()
     if route1.index(link[1]) != len(route1)-1:
         route1.reverse()
     merged_route = route0 + route1
-    if distances.calc_distance(merged_route) > distances.calc_distance(list(reversed(merged_route))):
+    if graph.calc_distance(merged_route) > graph.calc_distance(list(reversed(merged_route))):
         merged_route.reverse()
     return merged_route
 
@@ -97,14 +90,16 @@ def is_in_route(pair: tuple, routes: list):
 
 def generate_savings(graph: Graph):
     savings = dict()
-    nodescopy = graph.nodes
+    # nodescopy = graph.nodes
     # nodescopy.pop(graph.nodes.index(graph.depot))
-    print(nodescopy)
-    for nodenum in range(len(nodescopy)):
-        for node2 in nodescopy[nodenum+1:]:
+    # print(nodescopy)
+    print(graph.dist_graph)
+    for nodenum in range(len(graph.nodes)):
+        for node2 in graph.nodes[nodenum+1:]:
+            print(node2)
             # if routes[routenum] != route2: # Should never be equal?
             # print((nodenum, node2))
-            savings[(nodescopy[nodenum], node2)] = graph.graph[nodescopy[nodenum]][graph.depot] + graph.graph[graph.depot][node2] - graph.graph[nodescopy[nodenum]][node2]
+            savings[(graph.nodes[nodenum], node2)] = graph.dist_graph[graph.nodes[nodenum]][graph.depot] + graph.dist_graph[graph.depot][node2] - graph.dist_graph[graph.nodes[nodenum]][node2]
             # print(nodenum)
     return savings
 
@@ -133,3 +128,8 @@ def two_opt(graph: Graph, route: list): # Input route should always start and en
                 current_route = new_route
                 best_distance = new_distance
     return current_route
+
+sav_routes = saving(testgraph)
+print(sav_routes)
+for route in sav_routes:
+    print(two_opt(testgraph, route))
