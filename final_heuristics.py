@@ -93,12 +93,14 @@ def generate_savings(graph: Graph):
     # nodescopy = graph.nodes
     # nodescopy.pop(graph.nodes.index(graph.depot))
     # print(nodescopy)
-    print(graph.dist_graph)
+    # print(graph.dist_graph)
     for nodenum in range(len(graph.nodes)):
         for node2 in graph.nodes[nodenum+1:]:
-            print(node2)
+            # print(node2)
             # if routes[routenum] != route2: # Should never be equal?
             # print((nodenum, node2))
+            print(graph.nodes[nodenum])
+            print(node2)
             savings[(graph.nodes[nodenum], node2)] = graph.dist_graph[graph.nodes[nodenum]][graph.depot] + graph.dist_graph[graph.depot][node2] - graph.dist_graph[graph.nodes[nodenum]][node2]
             # print(nodenum)
     return savings
@@ -129,7 +131,7 @@ def two_opt(graph: Graph, route: list): # Input route should always start and en
                 best_distance = new_distance
     return current_route
 
-sav_routes = saving(testgraph)
-print(sav_routes)
-for route in sav_routes:
-    print(two_opt(testgraph, route))
+# sav_routes = saving(testgraph)
+# print(sav_routes)
+# for route in sav_routes:
+#     print(two_opt(testgraph, route))

@@ -4,6 +4,7 @@ from flask import Flask, request, render_template
 import sqlite3
 import csv
 from os import remove
+from final_heuristics import *
 
 app = Flask(__name__)
 
@@ -94,12 +95,16 @@ def index():
         file = request.files["addresses"]
         file.save(file.filename)
         with open(file.filename) as addresses:
-            csvreader = csv.reader(addresses)
+            data = list(csv.reader(addresses))
             connection = sqlite3.connect("student.db")
             cursor = connection.cursor()
-            cursor.executemany("INSERT INTO students(StudentID, Name, Address, Year, RouteID) VALUES(?, ?, ?, ?, -1)", list(csvreader))
-            cursor.execute("INSERT INTO students(StudentID, Name, Address, Year, RouteID) VALUES(-1, Depot, ?, -1, -1)", (depot,))
+            cursor.executemany("INSERT INTO students(StudentID, Name, Address, Year, RouteID) VALUES(?, ?, ?, ?, -1)", data)
+            cursor.execute("INSERT INTO students(StudentID, Name, Address, Year, RouteID) VALUES(-1, 'Depot', ?, -1, -1)", (depot,))
             connection.commit()
+            connection.close()
+            # print(data)
+            # print(list(row[2] for row in data))
+            processing(list(row[2] for row in data), depot)
         remove(file.filename)
         return render_template('finished.html')
     return render_template('index.html')
@@ -107,18 +112,59 @@ def index():
 @app.route('/maps')
 @app.route('/maps/')
 def mapdisplay():
-    graph = processing()
-    raise NotImplementedError
+    data, routes, depot = fetch_data()
+    embeds = routes_to_embed(routes, depot)
+    return render_template('mapdisplay.html', maps=embeds, data=data, len=len(data))
 
-def processing():
+def processing(nodes: list, depot: str):
     connection = sqlite3.connect("student.db")
     cursor = connection.cursor()
-    nodes = list(map(lambda x: x[0], cursor.execute("SELECT Address FROM students").fetchall()))
-    depot = cursor.execute("SELECT Address FROM students WHERE StudentID = -1").fetchone()
+    # nodes = list(map(lambda x: x[0], cursor.execute("SELECT Address FROM students").fetchall()))
+    # depot = cursor.execute("SELECT Address FROM students WHERE StudentID = -1").fetchone()
     graph = Graph(nodes=nodes, depot=depot)
     graph.create_graph()
-    return graph
-    # raise NotImplementedError
+
+    sav_routes = saving(graph, 3)
+    connection = sqlite3.connect("student.db")
+    cursor = connection.cursor()
+    # for routeID in range(len(sav_routes)):
+    for routeID, route in enumerate(sav_routes):
+        cursor.execute("INSERT INTO routes VALUES (?, ?, ?)", (routeID, graph.calc_distance(route), len(route)))
+        # print(cursor.execute("SELECT * FROM routes").fetchall())
+        # for point in range(len(sav_routes[routeID][1:-1])):
+        for n, point in enumerate(route):
+            cursor.execute("UPDATE students SET RouteID = ?, RouteOrder = ? WHERE Address = ?", (routeID, n+1, point))
+    connection.commit() # ALWAYS COMMIT dangit
+    connection.close()
+
+def fetch_data():
+    connection = sqlite3.connect("student.db")
+    cursor = connection.cursor()
+    routes = [[] for _ in range(len(cursor.execute("SELECT RouteID FROM routes").fetchall())-1)] # If you use multiplication here it does pointer magic and makes them all the same list
+    data = []
+    response = cursor.execute("SELECT RouteID, Address FROM students ORDER BY RouteID, RouteOrder").fetchall()
+    depot = response.pop(0)[1]
+    for address in response:
+        routes[address[0]].append(address[1])
+    response = cursor.execute("SELECT Distance, Stops FROM routes WHERE RouteID != -1 ORDER BY RouteID").fetchall()
+    for info in response:
+        data.append(info)
+    connection.close()
+    # print(data)
+    # for route in routes:
+    #     route.insert(0, testdepot)
+    #     route.append(testdepot)
+    return data, routes, depot
+
+def routes_to_embed(routes: list, depot: str):
+    embeds = []
+    for route in routes:
+        for address in route:
+            # address: str
+            formatted = address.replace(", ", ",").replace(" ", "+")
+            route[route.index(address)] = formatted
+        embeds.append(f"https://www.google.com/maps/embed/v1/directions?key=AIzaSyDE2qaxHADLeBQO1zLqfDIasLOalcHWHi0&origin={depot}&destination={depot}&waypoints={'|'.join(route)}")
+    return embeds
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=80)
