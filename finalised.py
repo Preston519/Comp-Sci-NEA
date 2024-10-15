@@ -124,10 +124,13 @@ def processing(nodes: list, depot: str):
     graph = Graph(nodes=nodes, depot=depot)
     graph.create_graph()
     sav_routes = saving(graph, 3)
+    topt_routes = []
+    for route in sav_routes:
+        topt_routes.append(two_opt(graph, route))
     connection = sqlite3.connect("student.db")
     cursor = connection.cursor()
     # for routeID in range(len(sav_routes)):
-    for routeID, route in enumerate(sav_routes):
+    for routeID, route in enumerate(topt_routes):
         cursor.execute("INSERT INTO routes VALUES (?, ?, ?)", (routeID, graph.calc_distance(route), len(route)))
         # print(cursor.execute("SELECT * FROM routes").fetchall())
         # for point in range(len(sav_routes[routeID][1:-1])):
