@@ -1,11 +1,13 @@
-from finalised import Graph
+# from finalised import Graph
 
-testgraph = Graph(nodes=['Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ', '8 Farriers Mews, Abingdon, Oxfordshire', '1 Hollow Way, Oxford, OX4 2LZ', '8 Morgan Vale, Abingdon, Oxfordshire', '20 Parsons Mead, Abingdon, Oxfordshire', '25 The Park, Cumnor, Oxford OX2 9QS', '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE', 'Taldysai Village, Kazakhstan', 'Ashmolean Museum, Beaumont Street, Oxfordshire'])
-testgraph.create_graph()
+# testgraph = Graph(nodes=['Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ', '8 Farriers Mews, Abingdon, Oxfordshire', '1 Hollow Way, Oxford, OX4 2LZ', '8 Morgan Vale, Abingdon, Oxfordshire', '20 Parsons Mead, Abingdon, Oxfordshire', '25 The Park, Cumnor, Oxford OX2 9QS', '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE', 'Taldysai Village, Kazakhstan', 'Ashmolean Museum, Beaumont Street, Oxfordshire'])
+# testgraph.create_graph()
+
+# All the parameters called graph are supposed to be Graph classes, but I can't do specify because importing Graph would be a circular import
 
 # Constructive Heuristics
 
-def nearestneighbour(graph: Graph, max_capacity = 5):
+def nearestneighbour(graph, max_capacity = 5):
     unvisited = graph.nodes
     # unvisited.pop(0)
     routes = []
@@ -24,7 +26,7 @@ def nearestneighbour(graph: Graph, max_capacity = 5):
 def sweep(graph, max_capacity=20):
     raise NotImplementedError
 
-def saving(graph: Graph, max_capacity=5): # The most well known VRP heuristic!
+def saving(graph, max_capacity=5): # The most well known VRP heuristic!
     # graphcopy = copy.deepcopy(graph.graph)
     # nodescopy = copy.deepcopy(graph.nodes)
     # graph.depot = graph.depot
@@ -63,7 +65,7 @@ def saving(graph: Graph, max_capacity=5): # The most well known VRP heuristic!
     #     route.append(graph.depot)
     return routes
 
-def merge(graph: Graph, route0: list, route1: list, link):
+def merge(graph, route0: list, route1: list, link):
     if route0.index(link[0]) != len(route0)-1:
         route0.reverse()
     if route1.index(link[1]) != len(route1)-1:
@@ -88,7 +90,7 @@ def is_in_route(pair: tuple, routes: list):
                     in_route[num] = True
     return in_route, indexes
 
-def generate_savings(graph: Graph):
+def generate_savings(graph):
     savings = dict()
     # nodescopy = graph.nodes
     # nodescopy.pop(graph.nodes.index(graph.depot))
@@ -99,8 +101,8 @@ def generate_savings(graph: Graph):
             # print(node2)
             # if routes[routenum] != route2: # Should never be equal?
             # print((nodenum, node2))
-            print(graph.nodes[nodenum])
-            print(node2)
+            # print(graph.nodes[nodenum])
+            # print(node2)
             savings[(graph.nodes[nodenum], node2)] = graph.dist_graph[graph.nodes[nodenum]][graph.depot] + graph.dist_graph[graph.depot][node2] - graph.dist_graph[graph.nodes[nodenum]][node2]
             # print(nodenum)
     return savings
@@ -118,7 +120,7 @@ def two_opt_swap(route: list, first: int, second: int):
     new_route[first+1:second] = reversed(route[first+1:second])
     return new_route
 
-def two_opt(graph: Graph, route: list): # Input route should always start and end with Abingdon School
+def two_opt(graph, route: list): # Input route should always start and end with Abingdon School
     new_distance = float('inf')
     best_distance = graph.calc_distance(route)
     current_route = route

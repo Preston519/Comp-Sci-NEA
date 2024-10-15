@@ -1,10 +1,9 @@
 import googlemaps
 from flask import Flask, request, render_template
-# from fileinput import filename
 import sqlite3
 import csv
 from os import remove
-from final_heuristics import *
+from final_heuristics import nearestneighbour, two_opt, saving
 
 app = Flask(__name__)
 
@@ -53,6 +52,7 @@ class Graph:
     
     def create_graph(self):
         gmaps = googlemaps.Client(key="AIzaSyDE2qaxHADLeBQO1zLqfDIasLOalcHWHi0")
+        self.nodes.append(self.depot)
         for address in self.nodes:
             for address2 in self.nodes:
                 if address == address2: continue
@@ -60,7 +60,7 @@ class Graph:
                 self.add_dist_edge(address, address2, weight)
                 weight = gmaps.directions(address, address2, mode="driving")[0]["legs"][0]["duration"]["value"]
                 self.add_time_edge(address, address2, weight)
-        self.nodes.pop(0)
+        self.nodes.pop()
         # self.nodes.pop(0) # Remove the first item, which should be the depot
 
 class Route:
@@ -123,7 +123,6 @@ def processing(nodes: list, depot: str):
     # depot = cursor.execute("SELECT Address FROM students WHERE StudentID = -1").fetchone()
     graph = Graph(nodes=nodes, depot=depot)
     graph.create_graph()
-
     sav_routes = saving(graph, 3)
     connection = sqlite3.connect("student.db")
     cursor = connection.cursor()
@@ -156,16 +155,16 @@ def fetch_data():
     #     route.append(testdepot)
     return data, routes, depot
 
-def routes_to_embed(routes: list, depot: str):
+def routes_to_embed(routes: list[list[str]], depot: str):
     embeds = []
+    depot = depot.replace(", ", ",").replace(" ", "+")
     for route in routes:
         for address in route:
             # address: str
-            formatted = address.replace(", ", ",").replace(" ", "+")
-            route[route.index(address)] = formatted
+            route[route.index(address)] = address.replace(", ", ",").replace(" ", "+")
         embeds.append(f"https://www.google.com/maps/embed/v1/directions?key=AIzaSyDE2qaxHADLeBQO1zLqfDIasLOalcHWHi0&origin={depot}&destination={depot}&waypoints={'|'.join(route)}")
     return embeds
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=80)
+    app.run(host="127.0.0.1", port=80, debug=True)
     # print(mapdisplay())
