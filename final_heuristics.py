@@ -5,6 +5,8 @@
 
 # All the parameters called graph are supposed to be Graph classes, but I can't do specify because importing Graph would be a circular import
 
+# Currently all works for capacitated VRP. Implement three (or two) specific methods that return a true or false for each VRP variant condition.
+
 # Constructive Heuristics
 
 def nearestneighbour(graph, max_capacity = 5):
