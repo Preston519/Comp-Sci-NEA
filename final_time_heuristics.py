@@ -1,4 +1,4 @@
-# from finalised import Graph
+from finalised import Graph
 
 # testgraph = Graph(nodes=['Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ', '8 Farriers Mews, Abingdon, Oxfordshire', '1 Hollow Way, Oxford, OX4 2LZ', '8 Morgan Vale, Abingdon, Oxfordshire', '20 Parsons Mead, Abingdon, Oxfordshire', '25 The Park, Cumnor, Oxford OX2 9QS', '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE', 'Taldysai Village, Kazakhstan', 'Ashmolean Museum, Beaumont Street, Oxfordshire'])
 # testgraph.create_graph()
@@ -28,7 +28,7 @@ def nearestneighbour(graph, max_capacity = 5):
 def sweep(graph, max_capacity=20):
     raise NotImplementedError
 
-def saving(graph, max_capacity=5): # The most well known VRP heuristic!
+def saving(graph: Graph, max_time=3600): # The most well known VRP heuristic!
     # graphcopy = copy.deepcopy(graph.graph)
     # nodescopy = copy.deepcopy(graph.nodes)
     # graph.depot = graph.depot
@@ -39,7 +39,7 @@ def saving(graph, max_capacity=5): # The most well known VRP heuristic!
     while savings:
         current = max(savings, key=savings.get)
         in_route, indexes = is_in_route(current, routes) # Ignore the pair if one or more of the nodes are already interior to a route, because a more optimal saving has already been made
-        if is_interior(current[1], routes[indexes[1]]) or is_interior(current[0], routes[indexes[0]]) or any(len(routes[index]) >= max_capacity for index in indexes):
+        if is_interior(current[1], routes[indexes[1]]) or is_interior(current[0], routes[indexes[0]]) or any(graph.calc_time(routes[index]) >= max_time for index in indexes):
             savings.pop(current)
             continue
         if not in_route[0] and not in_route[1]: # If neither node is in an existing route
@@ -62,6 +62,9 @@ def saving(graph, max_capacity=5): # The most well known VRP heuristic!
             routes[indexes[0]] = merge(graph, routes[indexes[0]], routes[indexes[1]], current)
             routes.pop(indexes[1])
         savings.pop(current)
+    # for route in routes:
+    #     route.insert(0, graph.depot)
+    #     route.append(graph.depot)
     return routes
 
 def merge(graph, route0: list, route1: list, link):
@@ -94,6 +97,13 @@ def generate_savings(graph):
     for nodenum in range(len(graph.nodes)):
         for node2 in graph.nodes[nodenum+1:]:
             savings[(graph.nodes[nodenum], node2)] = graph.dist_graph[graph.nodes[nodenum]][graph.depot] + graph.dist_graph[graph.depot][node2] - graph.dist_graph[graph.nodes[nodenum]][node2]
+            return savings
+
+def generate_time_savings(graph):
+    savings = dict()
+    for nodenum in range(len(graph.nodes)):
+        for node2 in graph.nodes[nodenum+1:]:
+            savings[(graph.nodes[nodenum], node2)] = graph.time_graph[graph.nodes[nodenum]][graph.depot] + graph.time_graph[graph.depot][node2] - graph.time_graph[graph.nodes[nodenum]][node2]
             return savings
 
 

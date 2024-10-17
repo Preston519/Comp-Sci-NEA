@@ -3,7 +3,9 @@ from flask import Flask, request, render_template
 import sqlite3
 import csv
 from os import remove
-from final_heuristics import nearestneighbour, two_opt, saving
+
+VRP_VARIANT = "CAPACITATED"
+# CAPACITATED or TIME-LIMITED
 
 app = Flask(__name__)
 
@@ -123,6 +125,10 @@ def processing(nodes: list, depot: str):
     # depot = cursor.execute("SELECT Address FROM students WHERE StudentID = -1").fetchone()
     graph = Graph(nodes=nodes, depot=depot)
     graph.create_graph()
+    if VRP_VARIANT == "CAPACITATED":
+        from final_heuristics import nearestneighbour, two_opt, saving
+    elif VRP_VARIANT == "TIME-LIMITED":
+        from final_time_heuristics import nearestneighbour, two_opt, saving
     sav_routes = saving(graph, 3)
     topt_routes = []
     for route in sav_routes:
