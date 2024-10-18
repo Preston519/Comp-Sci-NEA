@@ -4,7 +4,7 @@ import sqlite3
 import csv
 from os import remove
 
-VRP_VARIANT = "CAPACITATED"
+VRP_VARIANT = "TIME-LIMITED"
 # CAPACITATED or TIME-LIMITED
 
 app = Flask(__name__)
@@ -43,6 +43,7 @@ class Graph:
         time = 0
         for address_index in range(len(route)-1):
             time += self.time_graph[route[address_index]][route[address_index+1]]
+        time += self.time_graph[self.depot][route[0]] + self.time_graph[route[-1]][self.depot]
         # return f"{distance//1000}km {distance%1000}m"
         return time
     
@@ -129,7 +130,7 @@ def processing(nodes: list, depot: str):
         from final_heuristics import nearestneighbour, two_opt, saving
     elif VRP_VARIANT == "TIME-LIMITED":
         from final_time_heuristics import nearestneighbour, two_opt, saving
-    sav_routes = saving(graph, 3)
+    sav_routes = saving(graph, 3600)
     topt_routes = []
     for route in sav_routes:
         topt_routes.append(two_opt(graph, route))
@@ -137,7 +138,7 @@ def processing(nodes: list, depot: str):
     cursor = connection.cursor()
     # for routeID in range(len(sav_routes)):
     for routeID, route in enumerate(topt_routes):
-        cursor.execute("INSERT INTO routes VALUES (?, ?, ?)", (routeID, graph.calc_distance(route), len(route)))
+        cursor.execute("INSERT INTO routes VALUES (?, ?, ?, ?)", (routeID, graph.calc_distance(route), graph.calc_time(route), len(route)))
         # print(cursor.execute("SELECT * FROM routes").fetchall())
         # for point in range(len(sav_routes[routeID][1:-1])):
         for n, point in enumerate(route):
@@ -154,7 +155,7 @@ def fetch_data():
     depot = response.pop(0)[1]
     for address in response:
         routes[address[0]].append(address[1])
-    response = cursor.execute("SELECT Distance, Stops FROM routes WHERE RouteID != -1 ORDER BY RouteID").fetchall()
+    response = cursor.execute("SELECT Distance, Time, Stops FROM routes WHERE RouteID != -1 ORDER BY RouteID").fetchall()
     for info in response:
         data.append(info)
     connection.close()
