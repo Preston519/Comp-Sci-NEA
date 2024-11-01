@@ -96,6 +96,8 @@ def index():
     if request.method == 'POST':
         depot = request.form["depot"]
         file = request.files["addresses"]
+        constraint = request.form["constraint"]
+        maximum = int(request.form["maximum"])
         file.save(file.filename)
         with open(file.filename) as addresses:
             data = list(csv.reader(addresses))
@@ -107,7 +109,7 @@ def index():
             connection.close()
             # print(data)
             # print(list(row[2] for row in data))
-            processing(list(row[2] for row in data), depot)
+            processing(list(row[2] for row in data), depot, constraint, maximum)
         remove(file.filename)
         return render_template('finished.html')
     return render_template('index.html')
@@ -119,18 +121,20 @@ def mapdisplay():
     embeds = routes_to_embed(routes, depot)
     return render_template('mapdisplay.html', maps=embeds, data=data, len=len(data))
 
-def processing(nodes: list, depot: str):
+def processing(nodes: list, depot: str, constraint: str, maximum: int):
     connection = sqlite3.connect("student.db")
     cursor = connection.cursor()
     # nodes = list(map(lambda x: x[0], cursor.execute("SELECT Address FROM students").fetchall()))
     # depot = cursor.execute("SELECT Address FROM students WHERE StudentID = -1").fetchone()
     graph = Graph(nodes=nodes, depot=depot)
     graph.create_graph()
-    if VRP_VARIANT == "CAPACITATED":
+    if constraint == "Distance":
         from final_heuristics import nearestneighbour, two_opt, saving
-    elif VRP_VARIANT == "TIME-LIMITED":
+        maximum 
+    elif constraint == "Time":
         from final_time_heuristics import nearestneighbour, two_opt, saving
-    sav_routes = saving(graph, 3600)
+        maximum *= 60
+    sav_routes = saving(graph, maximum)
     topt_routes = []
     for route in sav_routes:
         topt_routes.append(two_opt(graph, route))

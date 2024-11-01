@@ -9,7 +9,7 @@
 
 # Constructive Heuristics
 
-def nearestneighbour(graph, max_capacity = 5):
+def nearestneighbour(graph, max_capacity = 3600):
     unvisited = graph.nodes
     # unvisited.pop(0)
     routes = []
