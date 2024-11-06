@@ -4,7 +4,8 @@ import sqlite3
 import csv
 from os import remove
 
-VRP_VARIANT = "TIME-LIMITED"
+# DEFUNCT
+# VRP_VARIANT = "TIME-LIMITED"
 # CAPACITATED or TIME-LIMITED
 
 app = Flask(__name__)
@@ -90,6 +91,18 @@ class Route:
 
     def find_stop(self, stop):
         return self.route.index(stop)
+    
+@app.route('/reset')
+@app.route('/reset/')
+def reset():
+    connection = sqlite3.connect("student.db")
+    cursor = connection.cursor()
+    cursor.execute("UPDATE students SET RouteID = -1, RouteOrder = ?", (None, ))
+    cursor.execute("DELETE FROM routes WHERE RouteID != -1")
+    cursor.execute("DELETE FROM students")
+    connection.commit()
+    connection.close()
+    return render_template('reset.html')
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -128,11 +141,10 @@ def processing(nodes: list, depot: str, constraint: str, maximum: int):
     # depot = cursor.execute("SELECT Address FROM students WHERE StudentID = -1").fetchone()
     graph = Graph(nodes=nodes, depot=depot)
     graph.create_graph()
-    if constraint == "Distance":
-        from final_heuristics import nearestneighbour, two_opt, saving
-        maximum 
-    elif constraint == "Time":
-        from final_time_heuristics import nearestneighbour, two_opt, saving
+    if constraint == "distance":
+        from final_heuristics import two_opt, saving
+    elif constraint == "time":
+        from final_time_heuristics import two_opt, saving
         maximum *= 60
     sav_routes = saving(graph, maximum)
     topt_routes = []

@@ -6,8 +6,12 @@
 </head>
 <body>
 <form method="POST" action="/">
-<input type="number" id="colour" name="colour">
-<input type="submit">
+<select name="colour">
+    {% for colour in colours %}
+    <option value= "{{colour}}" SELECTED>{{colour}}</option>"
+    {% endfor %}
+</select>
+<input type="submit" value="Submit">
 </form>
 
 </body>
