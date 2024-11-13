@@ -100,6 +100,9 @@ def index():
             data = list(csv.reader(addresses))
             connection = sqlite3.connect("student.db")
             cursor = connection.cursor()
+            cursor.execute("DELETE FROM routes WHERE RouteID != -1")
+            cursor.execute("DELETE FROM students")
+            connection.commit()
             cursor.executemany("INSERT INTO students(StudentID, Name, Address, Year, RouteID) VALUES(?, ?, ?, ?, -1)", data)
             cursor.execute("INSERT INTO students(StudentID, Name, Address, Year, RouteID) VALUES(-1, 'Depot', ?, -1, -1)", (depot,))
             connection.commit()
@@ -121,11 +124,13 @@ def processing(nodes: list, depot: str, constraint: str, maximum: int):
     cursor = connection.cursor()
     graph = Graph(nodes=nodes, depot=depot)
     graph.create_graph()
-    if constraint == "distance":
+    if constraint == "vehicles":
         from final_heuristics import two_opt, saving
     elif constraint == "time":
         from final_time_heuristics import two_opt, saving
         maximum *= 60
+    elif constraint == "distance":
+        from final_distance_heuristics import two_opt, saving
     sav_routes = saving(graph, maximum)
     topt_routes = []
     for route in sav_routes:
