@@ -11,7 +11,6 @@
 
 def nearestneighbour(graph, max_capacity = 3600):
     unvisited = graph.nodes
-    # unvisited.pop(0)
     routes = []
     while len(unvisited) > 0:
         current = sorted(unvisited, key=graph.time_graph[graph.depot].get)[0]

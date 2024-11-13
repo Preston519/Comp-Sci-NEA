@@ -4,10 +4,6 @@ import sqlite3
 import csv
 from os import remove
 
-# DEFUNCT
-# VRP_VARIANT = "TIME-LIMITED"
-# CAPACITATED or TIME-LIMITED
-
 app = Flask(__name__)
 
 class Graph:
@@ -67,42 +63,30 @@ class Graph:
         self.nodes.pop()
         # self.nodes.pop(0) # Remove the first item, which should be the depot
 
-class Route:
-    def __init__(self, depot: str = "", route: list = [], distance: int = 0, time: int = 0):
-        self.depot = depot
-        self.route = route
-        self.distance = distance
-        self.time = time
-        self.stops = len(route)
+# class Route:
+#     def __init__(self, depot: str = "", route: list = [], distance: int = 0, time: int = 0):
+#         self.depot = depot
+#         self.route = route
+#         self.distance = distance
+#         self.time = time
+#         self.stops = len(route)
     
-    def set_distance(self, distance: int):
-        self.distance = distance
+#     def set_distance(self, distance: int):
+#         self.distance = distance
 
-    def set_time(self, time: int):
-        self.time = time
+#     def set_time(self, time: int):
+#         self.time = time
 
-    def add_stop(self, stop):
-        self.route.append(stop)
-        self.stops += 1
+#     def add_stop(self, stop):
+#         self.route.append(stop)
+#         self.stops += 1
     
-    def remove_stop(self, num):
-        self.route.pop(num)
-        self.stops -= 1
+#     def remove_stop(self, num):
+#         self.route.pop(num)
+#         self.stops -= 1
 
-    def find_stop(self, stop):
-        return self.route.index(stop)
-    
-@app.route('/reset')
-@app.route('/reset/')
-def reset():
-    connection = sqlite3.connect("student.db")
-    cursor = connection.cursor()
-    cursor.execute("UPDATE students SET RouteID = -1, RouteOrder = ?", (None, ))
-    cursor.execute("DELETE FROM routes WHERE RouteID != -1")
-    cursor.execute("DELETE FROM students")
-    connection.commit()
-    connection.close()
-    return render_template('reset.html')
+#     def find_stop(self, stop):
+#         return self.route.index(stop)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -120,8 +104,6 @@ def index():
             cursor.execute("INSERT INTO students(StudentID, Name, Address, Year, RouteID) VALUES(-1, 'Depot', ?, -1, -1)", (depot,))
             connection.commit()
             connection.close()
-            # print(data)
-            # print(list(row[2] for row in data))
             processing(list(row[2] for row in data), depot, constraint, maximum)
         remove(file.filename)
         return render_template('finished.html')
@@ -137,8 +119,6 @@ def mapdisplay():
 def processing(nodes: list, depot: str, constraint: str, maximum: int):
     connection = sqlite3.connect("student.db")
     cursor = connection.cursor()
-    # nodes = list(map(lambda x: x[0], cursor.execute("SELECT Address FROM students").fetchall()))
-    # depot = cursor.execute("SELECT Address FROM students WHERE StudentID = -1").fetchone()
     graph = Graph(nodes=nodes, depot=depot)
     graph.create_graph()
     if constraint == "distance":
@@ -152,7 +132,6 @@ def processing(nodes: list, depot: str, constraint: str, maximum: int):
         topt_routes.append(two_opt(graph, route))
     connection = sqlite3.connect("student.db")
     cursor = connection.cursor()
-    # for routeID in range(len(sav_routes)):
     for routeID, route in enumerate(topt_routes):
         cursor.execute("INSERT INTO routes VALUES (?, ?, ?, ?)", (routeID, graph.calc_distance(route), graph.calc_time(route), len(route)))
         # print(cursor.execute("SELECT * FROM routes").fetchall())
@@ -175,10 +154,6 @@ def fetch_data():
     for info in response:
         data.append(info)
     connection.close()
-    # print(data)
-    # for route in routes:
-    #     route.insert(0, testdepot)
-    #     route.append(testdepot)
     return data, routes, depot
 
 def routes_to_embed(routes: list[list[str]], depot: str):
@@ -190,6 +165,18 @@ def routes_to_embed(routes: list[list[str]], depot: str):
             route[route.index(address)] = address.replace(", ", ",").replace(" ", "+")
         embeds.append(f"https://www.google.com/maps/embed/v1/directions?key=AIzaSyDE2qaxHADLeBQO1zLqfDIasLOalcHWHi0&origin={depot}&destination={depot}&waypoints={'|'.join(route)}")
     return embeds
+
+@app.route('/reset')
+@app.route('/reset/')
+def reset():
+    connection = sqlite3.connect("student.db")
+    cursor = connection.cursor()
+    cursor.execute("UPDATE students SET RouteID = -1, RouteOrder = ?", (None, ))
+    cursor.execute("DELETE FROM routes WHERE RouteID != -1")
+    cursor.execute("DELETE FROM students")
+    connection.commit()
+    connection.close()
+    return render_template('reset.html')
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=80, debug=True)
