@@ -1,5 +1,5 @@
 import googlemaps
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, redirect
 import sqlite3
 import csv
 from os import remove
@@ -32,7 +32,6 @@ class Graph:
         for address_index in range(len(route)-1):
             distance += self.dist_graph[route[address_index]][route[address_index+1]]
         distance += self.dist_graph[self.depot][route[0]] + self.dist_graph[route[-1]][self.depot]
-        # return f"{distance//1000}km {distance%1000}m"
         return distance
     
     def calc_time(self, route: list):
@@ -41,7 +40,6 @@ class Graph:
         for address_index in range(len(route)-1):
             time += self.time_graph[route[address_index]][route[address_index+1]]
         time += self.time_graph[self.depot][route[0]] + self.time_graph[route[-1]][self.depot]
-        # return f"{distance//1000}km {distance%1000}m"
         return time
     
     def find_distance(self, address1, address2):
@@ -61,32 +59,6 @@ class Graph:
                 weight = gmaps.directions(address, address2, mode="driving")[0]["legs"][0]["duration"]["value"]
                 self.add_time_edge(address, address2, weight)
         self.nodes.pop()
-        # self.nodes.pop(0) # Remove the first item, which should be the depot
-
-# class Route:
-#     def __init__(self, depot: str = "", route: list = [], distance: int = 0, time: int = 0):
-#         self.depot = depot
-#         self.route = route
-#         self.distance = distance
-#         self.time = time
-#         self.stops = len(route)
-    
-#     def set_distance(self, distance: int):
-#         self.distance = distance
-
-#     def set_time(self, time: int):
-#         self.time = time
-
-#     def add_stop(self, stop):
-#         self.route.append(stop)
-#         self.stops += 1
-    
-#     def remove_stop(self, num):
-#         self.route.pop(num)
-#         self.stops -= 1
-
-#     def find_stop(self, stop):
-#         return self.route.index(stop)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -116,10 +88,13 @@ def index():
 @app.route('/maps/')
 def mapdisplay():
     data, routes, depot = fetch_data()
-    embeds = routes_to_embed(routes, depot)
-    return render_template('mapdisplay.html', maps=embeds, data=data, len=len(data))
+    if not all((data, routes, depot)):
+        return redirect("/")
+    embeds = routes_to_embed(([x[2] for x in y]for y in routes), depot)
+    return render_template('mapdisplay.html', maps=embeds, data=data, len=len(data), routes=routes)
 
 def processing(nodes: list, depot: str, constraint: str, maximum: int):
+    """Creates a graph with provided nodes and depot, then applies heuristic based on constraint and maximum. No returns, all in SQL"""
     connection = sqlite3.connect("student.db")
     cursor = connection.cursor()
     graph = Graph(nodes=nodes, depot=depot)
@@ -139,41 +114,47 @@ def processing(nodes: list, depot: str, constraint: str, maximum: int):
     cursor = connection.cursor()
     for routeID, route in enumerate(topt_routes):
         cursor.execute("INSERT INTO routes VALUES (?, ?, ?, ?)", (routeID, graph.calc_distance(route), graph.calc_time(route), len(route)))
-        # print(cursor.execute("SELECT * FROM routes").fetchall())
-        # for point in range(len(sav_routes[routeID][1:-1])):
         for n, point in enumerate(route):
             cursor.execute("UPDATE students SET RouteID = ?, RouteOrder = ? WHERE Address = ?", (routeID, n+1, point))
     connection.commit() # ALWAYS COMMIT dangit
     connection.close()
 
 def fetch_data():
+    """Gets display data from SQL. Data: list(list(tuple)), routes: list, depot: str"""
     connection = sqlite3.connect("student.db")
     cursor = connection.cursor()
-    routes = [[] for _ in range(len(cursor.execute("SELECT RouteID FROM routes").fetchall())-1)] # If you use multiplication here it does pointer magic and makes them all the same list
+    routeAmt = len(cursor.execute("SELECT RouteID FROM routes").fetchall())-1
+    routes = [[] for _ in range(routeAmt)] # If you use multiplication here it does pointer magic and makes them all the same list
     data = []
-    response = cursor.execute("SELECT RouteID, Address FROM students ORDER BY RouteID, RouteOrder").fetchall()
-    depot = response.pop(0)[1]
-    for address in response:
-        routes[address[0]].append(address[1])
+    response = cursor.execute("SELECT RouteID, Address, StudentID, Name FROM students ORDER BY RouteID, RouteOrder").fetchall()
+    if not response:
+        routes = None
+        depot = None
+    else:
+        depot = response.pop(0)[1]
+        for address in response:
+            routes[address[0]].append((address[2], address[3], address[1]))
     response = cursor.execute("SELECT Distance, Time, Stops FROM routes WHERE RouteID != -1 ORDER BY RouteID").fetchall()
+    if not response:
+        data = None
     for info in response:
         data.append(info)
     connection.close()
     return data, routes, depot
 
 def routes_to_embed(routes: list[list[str]], depot: str):
+    """Turns a list of routes into a list of embed URLs"""
     embeds = []
     depot = depot.replace(", ", ",").replace(" ", "+")
     for route in routes:
         for address in route:
-            # address: str
             route[route.index(address)] = address.replace(", ", ",").replace(" ", "+")
         embeds.append(f"https://www.google.com/maps/embed/v1/directions?key=AIzaSyDE2qaxHADLeBQO1zLqfDIasLOalcHWHi0&origin={depot}&destination={depot}&waypoints={'|'.join(route)}")
     return embeds
 
 @app.route('/reset')
 @app.route('/reset/')
-def reset():
+def reset_page():
     connection = sqlite3.connect("student.db")
     cursor = connection.cursor()
     cursor.execute("UPDATE students SET RouteID = -1, RouteOrder = ?", (None, ))
@@ -185,4 +166,3 @@ def reset():
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=80, debug=True)
-    # print(mapdisplay())

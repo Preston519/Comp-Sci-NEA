@@ -5,13 +5,12 @@
 
 # All the parameters called graph are supposed to be Graph classes, but I can't do specify because importing Graph would be a circular import
 
-# Currently all works for capacitated VRP. Implement three (or two) specific methods that return a true or false for each VRP variant condition.
+# All works for Capacitated VRP
 
 # Constructive Heuristics
 
 def nearestneighbour(graph, max_capacity = 5):
     unvisited = graph.nodes
-    # unvisited.pop(0)
     routes = []
     while len(unvisited) > 0:
         current = sorted(unvisited, key=graph.dist_graph[graph.depot].get)[0]
@@ -25,17 +24,9 @@ def nearestneighbour(graph, max_capacity = 5):
         routes.append(route)
     return routes
 
-def sweep(graph, max_capacity=20):
-    raise NotImplementedError
-
 def saving(graph, max_capacity=5): # The most well known VRP heuristic!
-    # graphcopy = copy.deepcopy(graph.graph)
-    # nodescopy = copy.deepcopy(graph.nodes)
-    # graph.depot = graph.depot
     routes = list([node] for node in graph.nodes)
-    # print(routes)
     savings = generate_savings(graph)
-    # print(savings)
     while savings:
         current = max(savings, key=savings.get)
         in_route, indexes = is_in_route(current, routes) # Ignore the pair if one or more of the nodes are already interior to a route, because a more optimal saving has already been made
@@ -44,7 +35,6 @@ def saving(graph, max_capacity=5): # The most well known VRP heuristic!
             continue
         if not in_route[0] and not in_route[1]: # If neither node is in an existing route
             routes.pop(routes.index([current[1]]))
-            # print(routes)
             routes[routes.index([current[0]])].append(current[1])
         elif not in_route[0]: # If only one node is in an existing route, for both nodes
             if routes[indexes[1]].index(current[1]) == 0:
@@ -65,6 +55,7 @@ def saving(graph, max_capacity=5): # The most well known VRP heuristic!
     return routes
 
 def merge(graph, route0: list, route1: list, link):
+    """Merges two routes together as part of saving method"""
     if route0.index(link[0]) != len(route0)-1:
         route0.reverse()
     if route1.index(link[1]) != len(route1)-1:
@@ -75,10 +66,12 @@ def merge(graph, route0: list, route1: list, link):
     return merged_route
 
 def is_interior(point: tuple, route: list):
+    """Returns False if point is at either end of the route. Returns True otherwise"""
     index = route.index(point)
     return not(index == 0 or index == len(route)-1)
         
 def is_in_route(pair: tuple, routes: list):
+    """Returns if either point in pair are part of existing routes, and provides the index of the route"""
     in_route = [False, False]
     indexes = [None, None]
     for num in range(2):
@@ -90,16 +83,18 @@ def is_in_route(pair: tuple, routes: list):
     return in_route, indexes
 
 def generate_savings(graph):
+    """Generates a dict of how much will be saved if two points are merged"""
     savings = dict()
     for nodenum in range(len(graph.nodes)):
         for node2 in graph.nodes[nodenum+1:]:
             savings[(graph.nodes[nodenum], node2)] = graph.dist_graph[graph.nodes[nodenum]][graph.depot] + graph.dist_graph[graph.depot][node2] - graph.dist_graph[graph.nodes[nodenum]][node2]
-            return savings
+    return savings
 
 
 # Improvement Heuristics
 
 def two_opt_swap(route: list, first: int, second: int):
+    """Swaps the points at indexes first and second in the route"""
     if first == second:
         return route
     new_route = [None]*len(route)
@@ -120,8 +115,3 @@ def two_opt(graph, route: list): # Input route should always start and end with 
                 current_route = new_route
                 best_distance = new_distance
     return current_route
-
-# sav_routes = saving(testgraph)
-# print(sav_routes)
-# for route in sav_routes:
-#     print(two_opt(testgraph, route))
