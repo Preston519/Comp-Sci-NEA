@@ -102,21 +102,13 @@ def processing(nodes: list, depot: str, constraint: str, maximum: int):
     cursor = connection.cursor()
     graph = Graph(nodes=nodes, depot=depot)
     graph.create_graph()
-    # if constraint == "vehicles":
-    #     from final_heuristics import two_opt, saving
-    # elif constraint == "time":
-    #     from final_time_heuristics import two_opt, saving
-    #     maximum *= 60
-    # elif constraint == "distance":
-    #     from final_distance_heuristics import two_opt, saving
-    from final_heuristics import two_opt, saving
-    sav_routes = saving(graph, constraint, maximum)
-    topt_routes = []
-    for route in sav_routes:
-        topt_routes.append(two_opt(graph, route))
+    savings = Savings(graph, constraint, maximum)
+    savings.execute()
+    two_opt = TwoOpt(graph, constraint, maximum, savings.get_routes())
+    two_opt.execute()
     connection = sqlite3.connect("student.db")
     cursor = connection.cursor()
-    for routeID, route in enumerate(topt_routes):
+    for routeID, route in enumerate(two_opt.get_routes()):
         cursor.execute("INSERT INTO routes VALUES (?, ?, ?, ?)", (routeID, graph.calc_distance(route), graph.calc_time(route), len(route)))
         for n, point in enumerate(route):
             cursor.execute("UPDATE students SET RouteID = ?, RouteOrder = ? WHERE Address = ?", (routeID, n+1, point))
