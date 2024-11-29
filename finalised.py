@@ -3,7 +3,7 @@ from flask import Flask, request, render_template, redirect
 import sqlite3
 import csv
 from os import remove
-from final_heuristics import Savings, TwoOpt
+from final_heuristics import Savings, TwoOpt, Interchange
 
 app = Flask(__name__)
 
@@ -106,9 +106,10 @@ def processing(nodes: list, depot: str, constraint: str, maximum: int):
     savings.execute()
     two_opt = TwoOpt(graph, constraint, maximum, savings.get_routes())
     two_opt.execute()
+    interchange = Interchange(graph, constraint, maximum, two_opt.get_routes())
     connection = sqlite3.connect("student.db")
     cursor = connection.cursor()
-    for routeID, route in enumerate(two_opt.get_routes()):
+    for routeID, route in enumerate(interchange.get_routes()):
         cursor.execute("INSERT INTO routes VALUES (?, ?, ?, ?)", (routeID, graph.calc_distance(route), graph.calc_time(route), len(route)))
         for n, point in enumerate(route):
             cursor.execute("UPDATE students SET RouteID = ?, RouteOrder = ? WHERE Address = ?", (routeID, n+1, point))
@@ -158,7 +159,7 @@ def reset_page():
     cursor.execute("DELETE FROM students")
     connection.commit()
     connection.close()
-    return render_template('reset.html')
+    return redirect("/")
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=80, debug=True)

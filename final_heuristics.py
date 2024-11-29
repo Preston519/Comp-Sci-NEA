@@ -1,4 +1,4 @@
-from finalised import Graph
+# from finalised import Graph
 
 # testgraph = Graph(nodes=['Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ', '8 Farriers Mews, Abingdon, Oxfordshire', '1 Hollow Way, Oxford, OX4 2LZ', '8 Morgan Vale, Abingdon, Oxfordshire', '20 Parsons Mead, Abingdon, Oxfordshire', '25 The Park, Cumnor, Oxford OX2 9QS', '16 Acacia Gardens, Southmoor, Abingdon OX13 5DE', 'Taldysai Village, Kazakhstan', 'Ashmolean Museum, Beaumont Street, Oxfordshire'])
 # testgraph.create_graph()
@@ -10,7 +10,7 @@ from finalised import Graph
 # Constructive Heuristics
 
 class Heuristic:
-    def __init__(self, graph: Graph, constraint, maximum):
+    def __init__(self, graph, constraint, maximum):
         self._graph = graph
         self._constraint = constraint
         self._maximum = maximum
@@ -39,7 +39,7 @@ class NearestNeighbour(Heuristic):
 
 class Savings(Heuristic):
     def __init__(self, graph, constraint, maximum):
-        super().__init__(self, graph, constraint, maximum)
+        super().__init__(graph, constraint, maximum)
         self._savings = dict()
     
     def execute(self):
@@ -48,16 +48,19 @@ class Savings(Heuristic):
         while self._savings:
             current = max(self._savings, key=self._savings.get)
             in_route, indexes = self.is_in_route(current) # Ignore the pair if one or more of the nodes are already interior to a route, because a more optimal saving has already been made
-            if not any(indexes):
+            if any(x == None for x in indexes):
+                print(self._routes)
+                print(indexes)
                 raise Exception("Indexes returned None")
             if self.is_interior(current, indexes) or self.check_constraint(indexes, current):
                 self._savings.pop(current)
                 continue
-            if not any(in_route): # If neither node is in an existing route
-                self._routes.pop(self._routes.index([current[1]]))
+            if any(y == None for y in in_route): # If neither node is in an existing route
                 self._routes[indexes[0]].append(current[1])
+                self._routes.pop(indexes[1])
             else: # If one or both nodes are in an existing route
                 self._routes[indexes[0]] = self.merge(indexes, current)
+                self._routes.pop(indexes[1])
             self._savings.pop(current)
     
     def generate_savings(self):
@@ -119,13 +122,11 @@ class TwoOpt(Heuristic):
     
     def execute(self):
         for num, route in enumerate(self._routes):
-            new_distance = float('inf')
             best_distance = self._graph.calc_time(route) if self._constraint == "time" else self._graph.calc_distance(route)
             current_route = route
             for i in range(len(route[1:-2])):
                 for j in range(len(route[i+1:-1])):
-                    new_route = self.swap(num, i+1, j+i+2)
-                    new_distance = self._graph.calc_time(route) if self._constraint == "time" else self._graph.calc_distance(route)
+                    new_route, new_distance = self.swap(num, i+1, j+i+2)
                     if new_distance < best_distance:
                         current_route = new_route
                         best_distance = new_distance
@@ -135,4 +136,52 @@ class TwoOpt(Heuristic):
         """Swaps the points at indexes first and second in the route"""
         if first == second:
             return self._routes[listIndex]
-        return self._routes[listIndex][:first+1] + list(reversed(self._routes[listIndex][first+1:second])) + self._routes[listIndex][second:]
+        new_route = self._routes[listIndex][:first+1] + list(reversed(self._routes[listIndex][first+1:second])) + self._routes[listIndex][second:]
+        if self._constraint == "time":
+            distance = self._graph.calc_time(new_route)
+            reverse_distance = self._graph.calc_time(list(reversed(new_route)))
+        else:
+            distance = self._graph.calc_distance(new_route)
+            reverse_distance = self._graph.calc_distance(list(reversed(new_route)))
+        return (new_route, distance) if distance <= reverse_distance else (list(reversed(new_route)), reverse_distance)
+    
+class Interchange(Heuristic):
+    def __init__(self, graph, constraint, maximum, routes):
+        super().__init__(graph, constraint, maximum)
+        self._routes = routes
+    
+    def execute(self):
+        for num1, route1 in enumerate(self._routes):
+            for num2, route2 in enumerate(self._routes):
+                if route1 == route2:
+                    continue
+                new_distance = float('inf')
+                if self._constraint == "time":
+                    best_distance = self._graph.calc_time(route1) + self._graph.calc_time(route2)
+                else:
+                    best_distance = self._graph.calc_distance(route1) + self._graph.calc_distance(route2)
+                for i in range(len(route1)-1):
+                    for j in range(len(route2)-1):
+                        new_route1, new_route2, new_distance = self.interchange_swap(route1, route2, i, j)
+                        if new_distance < best_distance:
+                            route1 = new_route1
+                            route2 = new_route2
+                            best_distance = new_distance
+                self._routes[num1] = route1
+                self._routes[num2] = route2
+
+    def interchange_swap(self, route1: list, route2: list, first: int, second: int):
+        new_routes = [route1[:first+1] + route2[second+1:], route2[:second+1] + route1[second+1], 0]
+        for num in range(2):
+            if self._constraint == "time":
+                distance = self._graph.calc_time(new_routes[num])
+                reverse_distance = self._graph.calc_time(list(reversed(new_routes[num])))
+            else:
+                distance = self._graph.calc_distance(new_routes[num])
+                reverse_distance = self._graph.calc_distance(list(reversed(new_routes[num])))
+            if reverse_distance < distance:
+                new_routes[num] = list(reversed(new_routes[num]))
+                new_routes[2] += reverse_distance
+            else:
+                new_routes[2] += distance
+        return new_routes
