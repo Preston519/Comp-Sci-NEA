@@ -48,10 +48,6 @@ class Savings(Heuristic):
         while self._savings:
             current = max(self._savings, key=self._savings.get)
             in_route, indexes = self.is_in_route(current) # Ignore the pair if one or more of the nodes are already interior to a route, because a more optimal saving has already been made
-            if any(x == None for x in indexes):
-                print(self._routes)
-                print(indexes)
-                raise Exception("Indexes returned None")
             if self.is_interior(current, indexes) or self.check_constraint(indexes, current):
                 self._savings.pop(current)
                 continue
