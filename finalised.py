@@ -7,7 +7,7 @@ from os import remove
 app = Flask(__name__)
 
 class Graph:
-    def __init__(self, time_graph: dict = {}, dist_graph: dict = {}, nodes: list = [], depot: str = "Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ"):
+    def __init__(self, time_graph: dict = {}, dist_graph: dict = {}, nodes: list = [], depot: str = ""):
         self.time_graph = time_graph
         self.dist_graph = dist_graph
         self.depot = depot
@@ -60,6 +60,9 @@ class Graph:
                 self.add_time_edge(address, address2, weight)
         self.nodes.pop()
 
+    def get_nodes(self):
+        return self.nodes
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -99,14 +102,15 @@ def processing(nodes: list, depot: str, constraint: str, maximum: int):
     cursor = connection.cursor()
     graph = Graph(nodes=nodes, depot=depot)
     graph.create_graph()
-    if constraint == "vehicles":
-        from final_heuristics import two_opt, saving
-    elif constraint == "time":
-        from final_time_heuristics import two_opt, saving
-        maximum *= 60
-    elif constraint == "distance":
-        from final_distance_heuristics import two_opt, saving
-    sav_routes = saving(graph, maximum)
+    # if constraint == "vehicles":
+    #     from final_heuristics import two_opt, saving
+    # elif constraint == "time":
+    #     from final_time_heuristics import two_opt, saving
+    #     maximum *= 60
+    # elif constraint == "distance":
+    #     from final_distance_heuristics import two_opt, saving
+    from final_heuristics import two_opt, saving
+    sav_routes = saving(graph, constraint, maximum)
     topt_routes = []
     for route in sav_routes:
         topt_routes.append(two_opt(graph, route))
