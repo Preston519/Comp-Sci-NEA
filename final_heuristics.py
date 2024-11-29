@@ -10,7 +10,7 @@
 # Constructive Heuristics
 
 class Heuristic:
-    def __init__(self, graph, constraint, maximum):
+    def __init__(self, graph, constraint: str, maximum: int):
         self._graph = graph
         self._constraint = constraint
         self._maximum = maximum

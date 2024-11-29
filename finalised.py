@@ -43,9 +43,11 @@ class Graph:
         return time
     
     def find_distance(self, address1, address2):
+        """Edge from address1 to address2 on dist_graph"""
         return self.dist_graph[address1][address2]
     
     def find_time(self, address1, address2):
+        """Edge from address1 to address2 on time_graph"""
         return self.time_graph[address1][address2]
     
     def create_graph(self):
