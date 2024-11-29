@@ -3,6 +3,7 @@ from flask import Flask, request, render_template, redirect
 import sqlite3
 import csv
 from os import remove
+from final_heuristics import Savings, TwoOpt
 
 app = Flask(__name__)
 
@@ -12,7 +13,6 @@ class Graph:
         self.dist_graph = dist_graph
         self.depot = depot
         self.nodes = nodes
-        self.length = len(nodes)
 
     def add_dist_edge(self, node1, node2, weight):
         """Adds an edge on the distance graph, directed from node1 to node2"""
