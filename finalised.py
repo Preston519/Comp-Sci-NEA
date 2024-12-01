@@ -1,5 +1,5 @@
 import googlemaps
-from flask import Flask, request, render_template, redirect
+from flask import Flask, request, render_template, redirect, session
 import sqlite3
 import csv
 from os import remove
@@ -64,10 +64,40 @@ class Graph:
 
     def get_nodes(self):
         return self.nodes
-
+    
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
+        connection = sqlite3.connect("student.db")
+        cursor = connection.cursor()
+        if request.form["method"] == "register":
+            if request.form["username"] == "" or request.form["password"] == "":
+                return render_template("index.html", error="Empty username or password")
+            if '"' in request.form["username"]:
+                return render_template("index.html", error="Quotation marks are not allowed in usernames")
+            if cursor.execute("SELECT Username FROM login WHERE Username=?", (request.form["username"],)).fetchall():
+                connection.close()
+                return render_template("index.html", error="This username is already taken")
+            cursor.execute("INSERT INTO login VALUES(?, ?)", (request.form["username"], request.form["password"]))
+            username = request.form["username"]
+            cursor.execute('CREATE TABLE "{}_routes" (RouteID INTEGER PRIMARY KEY, Distance INTEGER, Time INTEGER, Stops INTEGER)'.format(username))
+            cursor.execute('CREATE TABLE "{tag}_students" (StudentID INTEGER PRIMARY KEY, Name TEXT, Address TEXT, Year INTEGER, RouteID INTEGER REFERENCES "{tag}_routes" (RouteID), RouteOrder INTEGER)'.format(tag=username))
+            connection.commit()
+            connection.close()
+        else:
+            if not cursor.execute("SELECT Username FROM login WHERE Username=? AND Password=?", (request.form["username"], request.form["password"])).fetchall():
+                return render_template("index.html", error="Incorrect username or password")
+        session["username"] = request.form["username"]
+        return redirect('/input')
+    return render_template("index.html")
+
+@app.route('/input', methods=['GET', 'POST'])
+@app.route('/input/', methods=['GET', 'POST'])
+def data_input():
+    if not session.get("username"):
+        return redirect('/')
+    if request.method == 'POST':
+        username = session["username"]
         depot = request.form["depot"]
         file = request.files["addresses"]
         constraint = request.form["constraint"]
@@ -77,31 +107,33 @@ def index():
             data = list(csv.reader(addresses))
             connection = sqlite3.connect("student.db")
             cursor = connection.cursor()
-            cursor.execute("DELETE FROM routes WHERE RouteID != -1")
-            cursor.execute("DELETE FROM students")
-            connection.commit()
-            cursor.executemany("INSERT INTO students(StudentID, Name, Address, Year, RouteID) VALUES(?, ?, ?, ?, -1)", data)
-            cursor.execute("INSERT INTO students(StudentID, Name, Address, Year, RouteID) VALUES(-1, 'Depot', ?, -1, -1)", (depot,))
+            # cursor.execute("DELETE FROM routes WHERE RouteID != -1")
+            # cursor.execute("DELETE FROM students")
+            # connection.commit()
+            # cursor.execute(f"CREATE TABLE {username}_routes AS SELECT * FROM routes")
+            # cursor.execute(f"CREATE TABLE {username}_students AS SELECT * FROM students")
+            cursor.executemany('INSERT INTO "{}_students"(StudentID, Name, Address, Year, RouteID) VALUES(?, ?, ?, ?, -1)'.format(username), data)
+            cursor.execute('INSERT INTO "{}_students" (StudentID, Name, Address, Year, RouteID) VALUES(-1, "Depot", ?, -1, -1)'.format(username), (depot,))
             connection.commit()
             connection.close()
             processing(list(row[2] for row in data), depot, constraint, maximum)
         remove(file.filename)
         return render_template('finished.html')
-    return render_template('index.html')
+    return render_template('input.html')
 
 @app.route('/maps')
 @app.route('/maps/')
 def mapdisplay():
+    if not session.get("username"):
+        return redirect('/')
     data, routes, depot = fetch_data()
     if not all((data, routes, depot)):
         return redirect("/")
     embeds = routes_to_embed(([x[2] for x in y]for y in routes), depot)
     return render_template('mapdisplay.html', maps=embeds, data=data, len=len(data), routes=routes)
 
-def processing(nodes: list, depot: str, constraint: str, maximum: int):
+def processing(nodes: list, depot: str, constraint: str, maximum: int,):
     """Creates a graph with provided nodes and depot, then applies heuristic based on constraint and maximum. No returns, all in SQL"""
-    connection = sqlite3.connect("student.db")
-    cursor = connection.cursor()
     graph = Graph(nodes=nodes, depot=depot)
     graph.create_graph()
     savings = Savings(graph, constraint, maximum)
@@ -111,10 +143,11 @@ def processing(nodes: list, depot: str, constraint: str, maximum: int):
     interchange = Interchange(graph, constraint, maximum, two_opt.get_routes())
     connection = sqlite3.connect("student.db")
     cursor = connection.cursor()
+    username = session["username"]
     for routeID, route in enumerate(interchange.get_routes()):
-        cursor.execute("INSERT INTO routes VALUES (?, ?, ?, ?)", (routeID, graph.calc_distance(route), graph.calc_time(route), len(route)))
+        cursor.execute('INSERT INTO "{}_routes" VALUES (?, ?, ?, ?)'.format(username), (routeID, graph.calc_distance(route), graph.calc_time(route), len(route)))
         for n, point in enumerate(route):
-            cursor.execute("UPDATE students SET RouteID = ?, RouteOrder = ? WHERE Address = ?", (routeID, n+1, point))
+            cursor.execute('UPDATE "{}_routes" SET RouteID = ?, RouteOrder = ? WHERE Address = ?'.format(username), (routeID, n+1, point))
     connection.commit() # ALWAYS COMMIT dangit
     connection.close()
 
@@ -122,10 +155,11 @@ def fetch_data():
     """Gets display data from SQL. Data: list(list(tuple)), routes: list, depot: str"""
     connection = sqlite3.connect("student.db")
     cursor = connection.cursor()
-    routeAmt = len(cursor.execute("SELECT RouteID FROM routes").fetchall())-1
+    username = session["username"]
+    routeAmt = len(cursor.execute('SELECT RouteID FROM "{}_routes"'.format(username)).fetchall())-1
     routes = [[] for _ in range(routeAmt)] # If you use multiplication here it does pointer magic and makes them all the same list
     data = []
-    response = cursor.execute("SELECT RouteID, Address, StudentID, Name FROM students ORDER BY RouteID, RouteOrder").fetchall()
+    response = cursor.execute('SELECT RouteID, Address, StudentID, Name FROM "{}_students" ORDER BY RouteID, RouteOrder'.format(username)).fetchall()
     if not response:
         routes = None
         depot = None
@@ -133,7 +167,7 @@ def fetch_data():
         depot = response.pop(0)[1]
         for address in response:
             routes[address[0]].append((address[2], address[3], address[1]))
-    response = cursor.execute("SELECT Distance, Time, Stops FROM routes WHERE RouteID != -1 ORDER BY RouteID").fetchall()
+    response = cursor.execute('SELECT Distance, Time, Stops FROM "{}_routes" WHERE RouteID != -1 ORDER BY RouteID'.format(username)).fetchall()
     if not response:
         data = None
     for info in response:
@@ -154,14 +188,15 @@ def routes_to_embed(routes: list[list[str]], depot: str):
 @app.route('/reset')
 @app.route('/reset/')
 def reset_page():
-    connection = sqlite3.connect("student.db")
-    cursor = connection.cursor()
-    cursor.execute("UPDATE students SET RouteID = -1, RouteOrder = ?", (None, ))
-    cursor.execute("DELETE FROM routes WHERE RouteID != -1")
-    cursor.execute("DELETE FROM students")
-    connection.commit()
-    connection.close()
+    if session.get("username"):
+        connection = sqlite3.connect("student.db")
+        cursor = connection.cursor()
+        cursor.execute('DELETE FROM "{}_routes" WHERE RouteID != -1'.format(session['username']))
+        cursor.execute('DELETE FROM "{}_students"'.format(session['username']))
+        connection.commit()
+        connection.close()
     return redirect("/")
 
 if __name__ == "__main__":
+    app.secret_key = "f5a48f39fe9f9545d425ba7d751d2589a6a588f36b334a26b469f1b539d342af"
     app.run(host="127.0.0.1", port=80, debug=True)
