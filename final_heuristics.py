@@ -26,11 +26,11 @@ class NearestNeighbour(Heuristic):
     def execute(self):
         unvisited = self._graph.get_nodes()
         while len(unvisited) > 0:
-            current = sorted(unvisited, key=self._graph.dist_graph[self._graph.depot].get)[0]
+            current = sorted(unvisited, key=self._graph.dist_edges(self._graph.depot).get)[0]
             route = [current]
             while len(route) < self._maximum and len(unvisited) > 1:
                 unvisited.pop(unvisited.index(current))
-                nearest = min(unvisited, key=self._graph.dist_graph[current].get)
+                nearest = min(unvisited, key=self._graph.dist_edges(current).get)
                 route.append(nearest)
                 current = nearest
             unvisited.pop(unvisited.index(current))
@@ -43,27 +43,30 @@ class Savings(Heuristic):
         self._savings = dict()
     
     def execute(self):
-        self._routes = list([node] for node in self._graph.nodes)
+        self._routes = list([node] for node in self._graph.get_nodes())
         self.generate_savings()
         while self._savings:
             current = max(self._savings, key=self._savings.get)
             in_route, indexes = self.is_in_route(current) # Ignore the pair if one or more of the nodes are already interior to a route, because a more optimal saving has already been made
-            if self.is_interior(current, indexes) or self.check_constraint(indexes, current):
+            if self.is_interior(current, indexes) or indexes[0] == indexes[1] or self.check_constraint(indexes, current):
                 self._savings.pop(current)
                 continue
-            if any(y == None for y in in_route): # If neither node is in an existing route
+            elif not any(in_route): # If neither node is in an existing route
                 self._routes[indexes[0]].append(current[1])
-                self._routes.pop(indexes[1])
             else: # If one or both nodes are in an existing route
                 self._routes[indexes[0]] = self.merge(indexes, current)
-                self._routes.pop(indexes[1])
+            self._routes.pop(indexes[1])
             self._savings.pop(current)
     
     def generate_savings(self):
         """Generates a dict of how much will be saved if two points are merged"""
-        for nodenum, node1 in enumerate(self._graph.get_nodes()):
-            for node2 in self._graph.get_nodes()[nodenum+1:]:
-                self._savings[(node1, node2)] = self._graph.dist_graph[node1][self._graph.depot] + self._graph.dist_graph[self._graph.depot][node2] - self._graph.dist_graph[node1][node2]
+        for node1 in self._graph.get_nodes():
+            for node2 in self._graph.get_nodes():
+                if node1 != node2:
+                    if self._constraint == "time":
+                        self._savings[(node1, node2)] = self._graph.find_time(node1, self._graph.get_depot()) + self._graph.find_time(self._graph.get_depot(), node2) - self._graph.find_time(node1,node2)
+                    else:
+                        self._savings[(node1, node2)] = self._graph.find_distance(node1, self._graph.get_depot()) + self._graph.find_distance(self._graph.get_depot(), node2) - self._graph.find_distance(node1, node2)
 
     def is_in_route(self, pair: tuple):
         in_route = [False, False]
@@ -79,7 +82,7 @@ class Savings(Heuristic):
     def is_interior(self, pair: tuple, indexes: list):
         """Returns True if one point is interior to a route"""
         for i in range(2):
-            if 0 > self._routes[indexes[i]].index(pair[i]) > len(self._routes[indexes[i]])-1:
+            if 0 < self._routes[indexes[i]].index(pair[i]) < len(self._routes[indexes[i]])-1:
                 return True
         return False
     
@@ -88,7 +91,7 @@ class Savings(Heuristic):
         if self._constraint == "vehicles":
             return len(self._routes[indexes[0]]) + len(self._routes[indexes[1]]) > self._maximum
         elif self._constraint == "time":
-            return self._graph.calc_time(self._routes[indexes[0]]) + self._graph.calc_time(self._routes[indexes[1]]) - self._savings[current] > self._maximum
+            return self._graph.calc_time(self._routes[indexes[0]]) + self._graph.calc_time(self._routes[indexes[1]]) - self._savings[current] > self._maximum*60
         elif self._constraint == "distance":
             return self._graph.calc_distance(self._routes[indexes[0]]) + self._graph.calc_distance(self._routes[indexes[1]]) - self._savings[current] > self._maximum
         else:

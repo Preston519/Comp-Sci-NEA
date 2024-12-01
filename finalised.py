@@ -46,9 +46,17 @@ class Graph:
         """Edge from address1 to address2 on dist_graph"""
         return self.dist_graph[address1][address2]
     
+    def dist_edges(self, address1):
+        """Returns a dict of edge weights from address1 to all other nodes"""
+        return self.dist_graph[address1]
+    
     def find_time(self, address1, address2):
         """Edge from address1 to address2 on time_graph"""
         return self.time_graph[address1][address2]
+    
+    def time_edges(self, address1):
+        """Returns a dict of edge weights from address1 to all other nodes"""
+        return self.time_graph[address1]
     
     def create_graph(self):
         gmaps = googlemaps.Client(key="AIzaSyDE2qaxHADLeBQO1zLqfDIasLOalcHWHi0")
@@ -64,6 +72,9 @@ class Graph:
 
     def get_nodes(self):
         return self.nodes
+    
+    def get_depot(self):
+        return self.depot
     
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -107,8 +118,8 @@ def data_input():
             data = list(csv.reader(addresses))
             connection = sqlite3.connect("student.db")
             cursor = connection.cursor()
-            # cursor.execute("DELETE FROM routes WHERE RouteID != -1")
-            # cursor.execute("DELETE FROM students")
+            cursor.execute('DELETE FROM "{}_routes" WHERE RouteID != -1'.format(username))
+            cursor.execute('DELETE FROM "{}_students"'.format(username))
             # connection.commit()
             # cursor.execute(f"CREATE TABLE {username}_routes AS SELECT * FROM routes")
             # cursor.execute(f"CREATE TABLE {username}_students AS SELECT * FROM students")
@@ -147,7 +158,7 @@ def processing(nodes: list, depot: str, constraint: str, maximum: int,):
     for routeID, route in enumerate(interchange.get_routes()):
         cursor.execute('INSERT INTO "{}_routes" VALUES (?, ?, ?, ?)'.format(username), (routeID, graph.calc_distance(route), graph.calc_time(route), len(route)))
         for n, point in enumerate(route):
-            cursor.execute('UPDATE "{}_routes" SET RouteID = ?, RouteOrder = ? WHERE Address = ?'.format(username), (routeID, n+1, point))
+            cursor.execute('UPDATE "{}_students" SET RouteID = ?, RouteOrder = ? WHERE Address = ?'.format(username), (routeID, n+1, point))
     connection.commit() # ALWAYS COMMIT dangit
     connection.close()
 
@@ -156,7 +167,7 @@ def fetch_data():
     connection = sqlite3.connect("student.db")
     cursor = connection.cursor()
     username = session["username"]
-    routeAmt = len(cursor.execute('SELECT RouteID FROM "{}_routes"'.format(username)).fetchall())-1
+    routeAmt = len(cursor.execute('SELECT RouteID FROM "{}_routes"'.format(username)).fetchall())
     routes = [[] for _ in range(routeAmt)] # If you use multiplication here it does pointer magic and makes them all the same list
     data = []
     response = cursor.execute('SELECT RouteID, Address, StudentID, Name FROM "{}_students" ORDER BY RouteID, RouteOrder'.format(username)).fetchall()
@@ -196,6 +207,13 @@ def reset_page():
         connection.commit()
         connection.close()
     return redirect("/")
+
+@app.route('/logout')
+@app.route('/logout/')
+def logout():
+    if session.get("username"):
+        session.clear()
+    return render_template("reset.html")
 
 if __name__ == "__main__":
     app.secret_key = "f5a48f39fe9f9545d425ba7d751d2589a6a588f36b334a26b469f1b539d342af"
