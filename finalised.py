@@ -81,20 +81,20 @@ def index():
     if session.get("username"):
         return redirect("/input")
     if request.method == 'POST':
-        connection = sqlite3.connect("student.db")
+        connection = sqlite3.connect("addresses.db")
         cursor = connection.cursor()
         if request.form["method"] == "register":
             if request.form["username"] == "" or request.form["password"] == "":
                 return render_template("index.html", error="Empty username or password")
-            if '"' in request.form["username"]:
+            elif '"' in request.form["username"]:
                 return render_template("index.html", error="Quotation marks are not allowed in usernames")
-            if cursor.execute("SELECT Username FROM login WHERE Username=?", (request.form["username"],)).fetchall():
+            elif cursor.execute("SELECT Username FROM login WHERE Username=?", (request.form["username"],)).fetchall():
                 connection.close()
                 return render_template("index.html", error="This username is already taken")
             cursor.execute("INSERT INTO login VALUES(?, ?)", (request.form["username"], request.form["password"]))
             username = request.form["username"]
             cursor.execute('CREATE TABLE "{}_routes" (RouteID INTEGER PRIMARY KEY, Distance INTEGER, Time INTEGER, Stops INTEGER)'.format(username))
-            cursor.execute('CREATE TABLE "{tag}_students" (StudentID INTEGER PRIMARY KEY, Name TEXT, Address TEXT, Year INTEGER, RouteID INTEGER REFERENCES "{tag}_routes" (RouteID), RouteOrder INTEGER)'.format(tag=username))
+            cursor.execute('CREATE TABLE "{tag}_addresses" (PersonID INTEGER PRIMARY KEY, Name TEXT, Address TEXT, RouteID INTEGER REFERENCES "{tag}_routes" (RouteID), RouteOrder INTEGER)'.format(tag=username))
             connection.commit()
             connection.close()
         else:
@@ -114,23 +114,30 @@ def data_input():
         depot = request.form["depot"]
         file = request.files["addresses"]
         constraint = request.form["constraint"]
-        maximum = int(request.form["maximum"])
+        maximum = request.form["maximum"]
+        if not any((depot, file, constraint, maximum)):
+            return render_template("input.html", error="Please fill all boxes")
+        elif not maximum.isdigit() or int(maximum) < 0:
+            return render_template("input.html", error="Units of measurement must be a positive integer")
+        elif not file.filename.endswith(".csv"):
+            return render_template("input.html", error="Submitted file is not of type csv")
         file.save(file.filename)
         with open(file.filename) as addresses:
             data = list(csv.reader(addresses))
-            connection = sqlite3.connect("student.db")
+            if any(len(row) != 3 for row in data):
+                return render_template("input.html", error="Incorrect amount of columns")
+            elif any(not row[0].isdigit() for row in data):
+                return render_template("input.html", error="PersonID must be an integer")
+            connection = sqlite3.connect("addresses.db")
             cursor = connection.cursor()
             cursor.execute('DELETE FROM "{}_routes" WHERE RouteID != -1'.format(username))
-            cursor.execute('DELETE FROM "{}_students"'.format(username))
-            # connection.commit()
-            # cursor.execute(f"CREATE TABLE {username}_routes AS SELECT * FROM routes")
-            # cursor.execute(f"CREATE TABLE {username}_students AS SELECT * FROM students")
-            cursor.executemany('INSERT INTO "{}_students"(StudentID, Name, Address, Year, RouteID) VALUES(?, ?, ?, ?, -1)'.format(username), data)
-            cursor.execute('INSERT INTO "{}_students" (StudentID, Name, Address, Year, RouteID) VALUES(-1, "Depot", ?, -1, -1)'.format(username), (depot,))
+            cursor.execute('DELETE FROM "{}_addresses"'.format(username))
+            cursor.executemany('INSERT INTO "{}_addresses"(PersonID, Name, Address, RouteID) VALUES(?, ?, ?, -1)'.format(username), data)
+            cursor.execute('INSERT INTO "{}_addresses" (PersonID, Name, Address, RouteID) VALUES(-1, "Depot", ?, -1)'.format(username), (depot,))
             connection.commit()
             connection.close()
-            processing(list(row[2] for row in data), depot, constraint, maximum)
         remove(file.filename)
+        processing(list(row[2] for row in data), depot, constraint, int(maximum))
         return render_template('finished.html')
     return render_template('input.html', username=session["username"])
 
@@ -143,7 +150,7 @@ def mapdisplay():
     if not all((data, routes, depot)):
         return render_template("nomaps.html", username=session["username"])
     embeds = routes_to_embed(([x[2] for x in y]for y in routes), depot)
-    return render_template('mapdisplay.html', maps=embeds, data=data, len=len(data), routes=routes)
+    return render_template('mapdisplay.html', maps=embeds, data=data, len=len(data), routes=routes, username=session["username"])
 
 def processing(nodes: list, depot: str, constraint: str, maximum: int,):
     """Creates a graph with provided nodes and depot, then applies heuristic based on constraint and maximum. No returns, all in SQL"""
@@ -154,25 +161,25 @@ def processing(nodes: list, depot: str, constraint: str, maximum: int,):
     two_opt = TwoOpt(graph, constraint, maximum, savings.get_routes())
     two_opt.execute()
     interchange = Interchange(graph, constraint, maximum, two_opt.get_routes())
-    connection = sqlite3.connect("student.db")
+    connection = sqlite3.connect("addresses.db")
     cursor = connection.cursor()
     username = session["username"]
     for routeID, route in enumerate(interchange.get_routes()):
         cursor.execute('INSERT INTO "{}_routes" VALUES (?, ?, ?, ?)'.format(username), (routeID, graph.calc_distance(route), graph.calc_time(route), len(route)))
         for n, point in enumerate(route):
-            cursor.execute('UPDATE "{}_students" SET RouteID = ?, RouteOrder = ? WHERE Address = ?'.format(username), (routeID, n+1, point))
+            cursor.execute('UPDATE "{}_addresses" SET RouteID = ?, RouteOrder = ? WHERE Address = ?'.format(username), (routeID, n+1, point))
     connection.commit() # ALWAYS COMMIT dangit
     connection.close()
 
 def fetch_data():
     """Gets display data from SQL. Data: list(list(tuple)), routes: list, depot: str"""
-    connection = sqlite3.connect("student.db")
+    connection = sqlite3.connect("addresses.db")
     cursor = connection.cursor()
     username = session["username"]
     routeAmt = len(cursor.execute('SELECT RouteID FROM "{}_routes"'.format(username)).fetchall())
     routes = [[] for _ in range(routeAmt)] # If you use multiplication here it does pointer magic and makes them all the same list
     data = []
-    response = cursor.execute('SELECT RouteID, Address, StudentID, Name FROM "{}_students" ORDER BY RouteID, RouteOrder'.format(username)).fetchall()
+    response = cursor.execute('SELECT RouteID, Address, PersonID, Name FROM "{}_addresses" ORDER BY RouteID, RouteOrder'.format(username)).fetchall()
     if not response:
         routes = None
         depot = None
@@ -202,10 +209,10 @@ def routes_to_embed(routes: list[list[str]], depot: str):
 @app.route('/reset/')
 def reset_page():
     if session.get("username"):
-        connection = sqlite3.connect("student.db")
+        connection = sqlite3.connect("addresses.db")
         cursor = connection.cursor()
         cursor.execute('DELETE FROM "{}_routes" WHERE RouteID != -1'.format(session['username']))
-        cursor.execute('DELETE FROM "{}_students"'.format(session['username']))
+        cursor.execute('DELETE FROM "{}_addresses"'.format(session['username']))
         connection.commit()
         connection.close()
     return redirect("/")

@@ -13,7 +13,7 @@
     <br />
     <label for="addresses">Addresses (.csv):</label>
     <br />
-    <label for="addresses">(StudentID, Name, Address, Year)</label>
+    <label for="addresses">(PersonID: int, Name: str, Address: str)</label>
     <br />
     <input type="file" name="addresses">
     <br />
@@ -36,7 +36,7 @@
     <input type="submit">
     <p>Please be patient, processing may take a few minutes</p>
     {% if error %}
-    <p>{{error}}</p>
+    <p style="color:red">{{error}}</p>
     {% else %}
     <br/>
     {% endif %}

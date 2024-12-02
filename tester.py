@@ -35,5 +35,5 @@
 
 # print(list([x[2] for x in y]for y in routes))
 
-x = 2
-print(x > 1*5)
+x = "thing"
+print(not x.isdigit())
