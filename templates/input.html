@@ -35,5 +35,15 @@
     <br />
     <input type="submit">
     <p>Please be patient, processing may take a few minutes</p>
+    {% if error %}
+    <p>{{error}}</p>
+    {% else %}
+    <br/>
+    {% endif %}
+    <br>
+    <br>
+    <br>
+    <p>Logged in as {{username}}<br><a href="/logout">Log Out</a></p>
+    <a href="/maps">View processed routes</a>
 </form>
 </html>

@@ -78,6 +78,8 @@ class Graph:
     
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    if session.get("username"):
+        return redirect("/input")
     if request.method == 'POST':
         connection = sqlite3.connect("student.db")
         cursor = connection.cursor()
@@ -130,7 +132,7 @@ def data_input():
             processing(list(row[2] for row in data), depot, constraint, maximum)
         remove(file.filename)
         return render_template('finished.html')
-    return render_template('input.html')
+    return render_template('input.html', username=session["username"])
 
 @app.route('/maps')
 @app.route('/maps/')
@@ -139,7 +141,7 @@ def mapdisplay():
         return redirect('/')
     data, routes, depot = fetch_data()
     if not all((data, routes, depot)):
-        return redirect("/")
+        return render_template("nomaps.html", username=session["username"])
     embeds = routes_to_embed(([x[2] for x in y]for y in routes), depot)
     return render_template('mapdisplay.html', maps=embeds, data=data, len=len(data), routes=routes)
 
@@ -213,7 +215,8 @@ def reset_page():
 def logout():
     if session.get("username"):
         session.clear()
-    return render_template("reset.html")
+    # return render_template("reset.html")
+    return redirect("/")
 
 if __name__ == "__main__":
     app.secret_key = "f5a48f39fe9f9545d425ba7d751d2589a6a588f36b334a26b469f1b539d342af"
