@@ -69,10 +69,7 @@ class Graph:
                 print(result)
                 for num1, row in enumerate(result["rows"]):
                     for num2, rowData, in enumerate(row["elements"]):
-                        if rowData["status"] != "OK":
-                            print(rowData)
-                            raise Exception("Address not found")
-                        elif splitChunk1[num1] == splitChunk2[num2]:
+                        if splitChunk1[num1] == splitChunk2[num2]:
                             continue
                         self.add_dist_edge(splitChunk1[num1], splitChunk2[num2], rowData["distance"]["value"])
                         self.add_time_edge(splitChunk1[num1], splitChunk2[num2], rowData["duration"]["value"])
