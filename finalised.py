@@ -66,13 +66,12 @@ class Graph:
         for splitChunk1 in splitNodes:
             for splitChunk2 in splitNodes:
                 result = gmaps.distance_matrix(splitChunk1, splitChunk2, mode="driving")
-                print(result)
                 for num1, row in enumerate(result["rows"]):
-                    for num2, rowData, in enumerate(row["elements"]):
+                    for num2, element, in enumerate(row["elements"]):
                         if splitChunk1[num1] == splitChunk2[num2]:
                             continue
-                        self.add_dist_edge(splitChunk1[num1], splitChunk2[num2], rowData["distance"]["value"])
-                        self.add_time_edge(splitChunk1[num1], splitChunk2[num2], rowData["duration"]["value"])
+                        self.add_dist_edge(splitChunk1[num1], splitChunk2[num2], element["distance"]["value"])
+                        self.add_time_edge(splitChunk1[num1], splitChunk2[num2], element["duration"]["value"])
         
         # for address in self.nodes:
         #     for address2 in self.nodes:
