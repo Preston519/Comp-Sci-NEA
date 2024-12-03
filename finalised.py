@@ -61,13 +61,30 @@ class Graph:
     def create_graph(self):
         gmaps = googlemaps.Client(key="AIzaSyDE2qaxHADLeBQO1zLqfDIasLOalcHWHi0")
         self.nodes.append(self.depot)
-        for address in self.nodes:
-            for address2 in self.nodes:
-                if address == address2: continue
-                weight = gmaps.directions(address, address2, mode="driving")[0]["legs"][0]["distance"]["value"]
-                self.add_dist_edge(address, address2, weight)
-                weight = gmaps.directions(address, address2, mode="driving")[0]["legs"][0]["duration"]["value"]
-                self.add_time_edge(address, address2, weight)
+        
+        splitNodes = [self.nodes[i:i+10] for i in range(0, len(self.nodes), 10)] # The API can only handle 100 connections at a time, so 10x10
+        for splitChunk1 in splitNodes:
+            for splitChunk2 in splitNodes:
+                result = gmaps.distance_matrix(splitChunk1, splitChunk2, mode="driving")
+                print(result)
+                for num1, row in enumerate(result["rows"]):
+                    for num2, rowData, in enumerate(row["elements"]):
+                        if rowData["status"] != "OK":
+                            print(rowData)
+                            raise Exception("Address not found")
+                        elif splitChunk1[num1] == splitChunk2[num2]:
+                            continue
+                        self.add_dist_edge(splitChunk1[num1], splitChunk2[num2], rowData["distance"]["value"])
+                        self.add_time_edge(splitChunk1[num1], splitChunk2[num2], rowData["duration"]["value"])
+        
+        # for address in self.nodes:
+        #     for address2 in self.nodes:
+        #         if address == address2: continue
+        #         weight = gmaps.directions(address, address2, mode="driving")[0]["legs"][0]["distance"]["value"]
+        #         self.add_dist_edge(address, address2, weight)
+        #         weight = gmaps.directions(address, address2, mode="driving")[0]["legs"][0]["duration"]["value"]
+        #         self.add_time_edge(address, address2, weight)
+                
         self.nodes.pop()
 
     def get_nodes(self):
@@ -137,7 +154,10 @@ def data_input():
             connection.commit()
             connection.close()
         remove(file.filename)
+        # try:
         processing(list(row[2] for row in data), depot, constraint, int(maximum))
+        # except Exception:
+            # return render_template('input.html', username=session["username"], error="Invalid address input")
         return render_template('finished.html')
     return render_template('input.html', username=session["username"])
 
