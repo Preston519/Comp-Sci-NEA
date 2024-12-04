@@ -66,6 +66,14 @@ class Graph:
         for splitChunk1 in splitNodes:
             for splitChunk2 in splitNodes:
                 result = gmaps.distance_matrix(splitChunk1, splitChunk2, mode="driving")
+                if not all(result["origin_addresses"]):
+                    for num, address in enumerate(result["origin_addresses"]):
+                        if not address:
+                            raise Exception(splitChunk1[num])
+                elif not all(result["destination_addresses"]):
+                    for num, address in enumerate(result["destination_addresses"]):
+                        if not address:
+                            raise Exception(splitChunk2[num])
                 for num1, row in enumerate(result["rows"]):
                     for num2, element, in enumerate(row["elements"]):
                         if splitChunk1[num1] == splitChunk2[num2]:
@@ -137,23 +145,32 @@ def data_input():
         file.save(file.filename)
         with open(file.filename) as addresses:
             data = list(csv.reader(addresses))
+            error = None
             if any(len(row) != 3 for row in data):
-                return render_template("input.html", error="Incorrect amount of columns")
+                print(list(len(row) for row in data))
+                error = "Incorrect amount of columns"
             elif any(not row[0].isdigit() for row in data):
-                return render_template("input.html", error="PersonID must be an integer")
-            connection = sqlite3.connect("addresses.db")
-            cursor = connection.cursor()
-            cursor.execute('DELETE FROM "{}_routes" WHERE RouteID != -1'.format(username))
-            cursor.execute('DELETE FROM "{}_addresses"'.format(username))
-            cursor.executemany('INSERT INTO "{}_addresses"(PersonID, Name, Address, RouteID) VALUES(?, ?, ?, -1)'.format(username), data)
-            cursor.execute('INSERT INTO "{}_addresses" (PersonID, Name, Address, RouteID) VALUES(-1, "Depot", ?, -1)'.format(username), (depot,))
-            connection.commit()
-            connection.close()
+                error = "PersonID must be an integer"
+            elif sorted(set(x[0] for x in data)) != sorted(x[0] for x in data):
+                # print(list(x[0] for x in data))
+                # print(set(x[0] for x in data))
+                error = "PersonID must be unique for every person"
+            else:
+                connection = sqlite3.connect("addresses.db")
+                cursor = connection.cursor()
+                cursor.execute('DELETE FROM "{}_routes" WHERE RouteID != -1'.format(username))
+                cursor.execute('DELETE FROM "{}_addresses"'.format(username))
+                cursor.executemany('INSERT INTO "{}_addresses"(PersonID, Name, Address, RouteID) VALUES(?, ?, ?, -1)'.format(username), data)
+                cursor.execute('INSERT INTO "{}_addresses" (PersonID, Name, Address, RouteID) VALUES(-1, "Depot", ?, -1)'.format(username), (depot,))
+                connection.commit()
+                connection.close()
         remove(file.filename)
-        # try:
-        processing(list(row[2] for row in data), depot, constraint, int(maximum))
-        # except Exception:
-            # return render_template('input.html', username=session["username"], error="Invalid address input")
+        if error: # Needs to be stalled until the file can be deleted
+            return render_template("input.html", error=error)
+        try:
+            processing(list(row[2] for row in data), depot, constraint, int(maximum))
+        except Exception as exception:
+            return render_template("input.html", error="Address not found: " + str(exception))
         return render_template('finished.html')
     return render_template('input.html', username=session["username"])
 
