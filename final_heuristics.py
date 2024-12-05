@@ -5,8 +5,6 @@
 
 # All the parameters called graph are supposed to be Graph classes, but I can't do specify because importing Graph would be a circular import
 
-# All works for Capacitated VRP
-
 # Constructive Heuristics
 
 class Heuristic:
@@ -91,7 +89,6 @@ class Savings(Heuristic):
         """Returns True if constraints are breached"""
         if self._constraint == "capacity":
             return len(self._routes[indexes[0]]) + len(self._routes[indexes[1]]) > self._maximum
-            # return len(self._routes) <= self._maximum
         elif self._constraint == "time":
             return self._graph.calc_time(self._routes[indexes[0]]) + self._graph.calc_time(self._routes[indexes[1]]) - self._savings[current] > self._maximum*60
         elif self._constraint == "distance":
@@ -101,7 +98,7 @@ class Savings(Heuristic):
         
     def merge(self, indexes: list, link: tuple):
         """Merges two routes together as part of saving method"""
-        route0 = self._routes[indexes[0]] # Assigning temporary variables so as to not modify original routes
+        route0 = self._routes[indexes[0]] # Assigning temporary variables to not modify original routes
         route1 = self._routes[indexes[1]]
         if route0.index(link[0]) != len(route0)-1:
             route0.reverse()

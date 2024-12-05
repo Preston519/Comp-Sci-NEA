@@ -62,7 +62,7 @@ class Graph:
         gmaps = googlemaps.Client(key="AIzaSyDE2qaxHADLeBQO1zLqfDIasLOalcHWHi0")
         self.nodes.append(self.depot)
         
-        splitNodes = [self.nodes[i:i+10] for i in range(0, len(self.nodes), 10)] # The API can only handle 100 connections at a time, so 10x10
+        splitNodes = [self.nodes[i:i+10] for i in range(0, len(self.nodes), 10)]
         for splitChunk1 in splitNodes:
             for splitChunk2 in splitNodes:
                 result = gmaps.distance_matrix(splitChunk1, splitChunk2, mode="driving")
@@ -79,16 +79,7 @@ class Graph:
                         if splitChunk1[num1] == splitChunk2[num2]:
                             continue
                         self.add_dist_edge(splitChunk1[num1], splitChunk2[num2], element["distance"]["value"])
-                        self.add_time_edge(splitChunk1[num1], splitChunk2[num2], element["duration"]["value"])
-        
-        # for address in self.nodes:
-        #     for address2 in self.nodes:
-        #         if address == address2: continue
-        #         weight = gmaps.directions(address, address2, mode="driving")[0]["legs"][0]["distance"]["value"]
-        #         self.add_dist_edge(address, address2, weight)
-        #         weight = gmaps.directions(address, address2, mode="driving")[0]["legs"][0]["duration"]["value"]
-        #         self.add_time_edge(address, address2, weight)
-                
+                        self.add_time_edge(splitChunk1[num1], splitChunk2[num2], element["duration"]["value"])                
         self.nodes.pop()
 
     def get_nodes(self):
@@ -152,8 +143,6 @@ def data_input():
             elif any(not row[0].isdigit() for row in data):
                 error = "PersonID must be an integer"
             elif sorted(set(x[0] for x in data)) != sorted(x[0] for x in data):
-                # print(list(x[0] for x in data))
-                # print(set(x[0] for x in data))
                 error = "PersonID must be unique for every person"
             else:
                 connection = sqlite3.connect("addresses.db")
@@ -165,7 +154,7 @@ def data_input():
                 connection.commit()
                 connection.close()
         remove(file.filename)
-        if error: # Needs to be stalled until the file can be deleted
+        if error: # Needs to be stalled until the file is deleted
             return render_template("input.html", error=error)
         try:
             processing(list(row[2] for row in data), depot, constraint, int(maximum))
@@ -210,7 +199,7 @@ def fetch_data():
     cursor = connection.cursor()
     username = session["username"]
     routeAmt = len(cursor.execute('SELECT RouteID FROM "{}_routes"'.format(username)).fetchall())
-    routes = [[] for _ in range(routeAmt)] # If you use multiplication here it does pointer magic and makes them all the same list
+    routes = [[] for _ in range(routeAmt)] # If you use multiplication here it does pointer magic and makes them all the same list because mutable
     data = []
     response = cursor.execute('SELECT RouteID, Address, PersonID, Name FROM "{}_addresses" ORDER BY RouteID, RouteOrder'.format(username)).fetchall()
     if not response:
@@ -255,7 +244,6 @@ def reset_page():
 def logout():
     if session.get("username"):
         session.clear()
-    # return render_template("reset.html")
     return redirect("/")
 
 if __name__ == "__main__":
