@@ -35,7 +35,11 @@
 
 # print(list([x[2] for x in y]for y in routes))
 
-import googlemaps
+# import googlemaps
 
-gmaps = googlemaps.Client(key="AIzaSyDE2qaxHADLeBQO1zLqfDIasLOalcHWHi0")
-print(gmaps.distance_matrix(["1 Hollow Way, Oxford, OX4 2LZ", 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ', '8 Farriers Mews, Abingdon, Oxfordshire'], ["bongo", 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ', '8 Farriers Mews, Abingdon, Oxfordshire']))
+# gmaps = googlemaps.Client(key="AIzaSyDE2qaxHADLeBQO1zLqfDIasLOalcHWHi0")
+# print(gmaps.distance_matrix(["1 Hollow Way, Oxford, OX4 2LZ", 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ', '8 Farriers Mews, Abingdon, Oxfordshire'], ["bongo", 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ', '8 Farriers Mews, Abingdon, Oxfordshire']))
+
+x = "dkdk\" dkdke"
+
+print('"' in x)

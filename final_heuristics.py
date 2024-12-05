@@ -67,6 +67,7 @@ class Savings(Heuristic):
                         self._savings[(node1, node2)] = self._graph.find_time(node1, self._graph.get_depot()) + self._graph.find_time(self._graph.get_depot(), node2) - self._graph.find_time(node1,node2)
                     else:
                         self._savings[(node1, node2)] = self._graph.find_distance(node1, self._graph.get_depot()) + self._graph.find_distance(self._graph.get_depot(), node2) - self._graph.find_distance(node1, node2)
+        print(sorted(self._savings))
 
     def is_in_route(self, pair: tuple):
         in_route = [False, False]
@@ -88,8 +89,9 @@ class Savings(Heuristic):
     
     def check_constraint(self, indexes: list, current: tuple):
         """Returns True if constraints are breached"""
-        if self._constraint == "vehicles":
+        if self._constraint == "capacity":
             return len(self._routes[indexes[0]]) + len(self._routes[indexes[1]]) > self._maximum
+            # return len(self._routes) <= self._maximum
         elif self._constraint == "time":
             return self._graph.calc_time(self._routes[indexes[0]]) + self._graph.calc_time(self._routes[indexes[1]]) - self._savings[current] > self._maximum*60
         elif self._constraint == "distance":

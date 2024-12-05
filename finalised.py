@@ -107,7 +107,7 @@ def index():
         if request.form["method"] == "register":
             if request.form["username"] == "" or request.form["password"] == "":
                 return render_template("index.html", error="Empty username or password")
-            elif '"' in request.form["username"]:
+            elif '\"' in request.form["username"]:
                 return render_template("index.html", error="Quotation marks are not allowed in usernames")
             elif cursor.execute("SELECT Username FROM login WHERE Username=?", (request.form["username"],)).fetchall():
                 connection.close()
