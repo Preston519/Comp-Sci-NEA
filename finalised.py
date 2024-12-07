@@ -112,8 +112,8 @@ def index():
             connection.commit()
             connection.close()
         else:
-            password = cursor.execute("SELECT Password FROM login WHERE Username=?", (request.form["username"],)).fetchone()[0]
-            if password == None or not bcrypt.checkpw(request.form["password"].encode("utf-8"), password):
+            password = cursor.execute("SELECT Password FROM login WHERE Username=?", (request.form["username"],)).fetchone()
+            if password == None or not bcrypt.checkpw(request.form["password"].encode("utf-8"), password[0]):
                 return render_template("index.html", error="Incorrect username or password")
                 
         session["username"] = request.form["username"]
@@ -131,12 +131,12 @@ def data_input():
         file = request.files["addresses"]
         constraint = request.form["constraint"]
         maximum = request.form["maximum"]
-        if not any((depot, file, constraint, maximum)):
-            return render_template("input.html", error="Please fill all boxes")
+        if not all((depot, file, constraint, maximum)):
+            return render_template("input.html", error="Please fill all boxes", username=session["username"])
         elif not maximum.isdigit() or int(maximum) < 0:
-            return render_template("input.html", error="Units of measurement must be a positive integer")
+            return render_template("input.html", error="Units of measurement must be a positive integer", username=session["username"])
         elif not file.filename.endswith(".csv"):
-            return render_template("input.html", error="Submitted file is not of type csv")
+            return render_template("input.html", error="Submitted file is not of type csv", username=session["username"])
         file.save(file.filename)
         with open(file.filename) as addresses:
             data = list(csv.reader(addresses))
@@ -159,11 +159,11 @@ def data_input():
                 connection.close()
         remove(file.filename)
         if error: # Needs to be stalled until the file is deleted
-            return render_template("input.html", error=error)
+            return render_template("input.html", error=error, username=session["username"])
         try:
             processing(list(row[2] for row in data), depot, constraint, int(maximum))
         except Exception as exception:
-            return render_template("input.html", error="Address not found: " + str(exception))
+            return render_template("input.html", error="Address not found: " + str(exception), username=session["username"])
         return render_template('finished.html')
     return render_template('input.html', username=session["username"])
 
