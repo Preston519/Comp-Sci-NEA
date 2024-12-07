@@ -4,6 +4,7 @@ import sqlite3
 import csv
 from os import remove
 from final_heuristics import Savings, TwoOpt, Interchange
+import bcrypt
 
 app = Flask(__name__)
 
@@ -103,15 +104,18 @@ def index():
             elif cursor.execute("SELECT Username FROM login WHERE Username=?", (request.form["username"],)).fetchall():
                 connection.close()
                 return render_template("index.html", error="This username is already taken")
-            cursor.execute("INSERT INTO login VALUES(?, ?)", (request.form["username"], request.form["password"]))
             username = request.form["username"]
+            salt = bcrypt.gensalt()
+            cursor.execute("INSERT INTO login VALUES(?, ?)", (username, bcrypt.hashpw(request.form["password"].encode("utf-8"), salt)))
             cursor.execute('CREATE TABLE "{}_routes" (RouteID INTEGER PRIMARY KEY, Distance INTEGER, Time INTEGER, Stops INTEGER)'.format(username))
             cursor.execute('CREATE TABLE "{tag}_addresses" (PersonID INTEGER PRIMARY KEY, Name TEXT, Address TEXT, RouteID INTEGER REFERENCES "{tag}_routes" (RouteID), RouteOrder INTEGER)'.format(tag=username))
             connection.commit()
             connection.close()
         else:
-            if not cursor.execute("SELECT Username FROM login WHERE Username=? AND Password=?", (request.form["username"], request.form["password"])).fetchall():
+            password = cursor.execute("SELECT Password FROM login WHERE Username=?", (request.form["username"],)).fetchone()[0]
+            if password == None or not bcrypt.checkpw(request.form["password"].encode("utf-8"), password):
                 return render_template("index.html", error="Incorrect username or password")
+                
         session["username"] = request.form["username"]
         return redirect('/input')
     return render_template("index.html")

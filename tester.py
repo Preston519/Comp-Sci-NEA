@@ -40,6 +40,19 @@
 # gmaps = googlemaps.Client(key="AIzaSyDE2qaxHADLeBQO1zLqfDIasLOalcHWHi0")
 # print(gmaps.distance_matrix(["1 Hollow Way, Oxford, OX4 2LZ", 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ', '8 Farriers Mews, Abingdon, Oxfordshire'], ["bongo", 'Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ', '8 Farriers Mews, Abingdon, Oxfordshire']))
 
-x = "dkdk\" dkdke"
-
-print('"' in x)
+# import bcrypt
+# salt = bcrypt.gensalt()
+# hashpw = bcrypt.hashpw(b"ke3ke", salt)
+# print(hashpw)
+# salt = bcrypt.gensalt()
+# print(salt)
+# print(bcrypt.checkpw(b"", hashpw))
+# print("".encode('utf-8'))
+import sqlite3
+connection = sqlite3.connect("addresses.db")
+cursor = connection.cursor()
+# print(str(cursor.execute("SELECT Password FROM login WHERE Username=?", ("keke",)).fetchone()))
+# print(str(None))
+# cursor.execute("INSERT INTO login VALUES(?, ?)", (b"test", b"test2"))
+# connection.commit()
+print(cursor.execute("SELECT Username, Password FROM login").fetchall())
