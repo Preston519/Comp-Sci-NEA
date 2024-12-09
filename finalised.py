@@ -70,15 +70,17 @@ class Graph:
                 if not all(result["origin_addresses"]):
                     for num, address in enumerate(result["origin_addresses"]):
                         if not address:
-                            raise Exception(splitChunk1[num])
+                            raise Exception("Address not found: " + str(splitChunk1[num]))
                 elif not all(result["destination_addresses"]):
                     for num, address in enumerate(result["destination_addresses"]):
                         if not address:
-                            raise Exception(splitChunk2[num])
+                            raise Exception("Address not found: " + str(splitChunk2[num]))
                 for num1, row in enumerate(result["rows"]):
                     for num2, element, in enumerate(row["elements"]):
                         if splitChunk1[num1] == splitChunk2[num2]:
                             continue
+                        elif element["status"] == "ZERO_RESULTS":
+                            raise Exception("No route found between" + str(splitChunk1[num]) + "and" + str(splitChunk2[num]))
                         self.add_dist_edge(splitChunk1[num1], splitChunk2[num2], element["distance"]["value"])
                         self.add_time_edge(splitChunk1[num1], splitChunk2[num2], element["duration"]["value"])                
         self.nodes.pop()
@@ -163,7 +165,7 @@ def data_input():
         try:
             processing(list(row[2] for row in data), depot, constraint, int(maximum))
         except Exception as exception:
-            return render_template("input.html", error="Address not found: " + str(exception), username=session["username"])
+            return render_template("input.html", error=exception, username=session["username"])
         return render_template('finished.html')
     return render_template('input.html', username=session["username"])
 
@@ -224,10 +226,10 @@ def fetch_data():
 def routes_to_embed(routes: list[list[str]], depot: str):
     """Turns a list of routes into a list of embed URLs"""
     embeds = []
-    depot = depot.replace(", ", ",").replace(" ", "+")
+    depot = depot.replace(", ", ",").replace(" ", "+").replace("&", "and")
     for route in routes:
         for address in route:
-            route[route.index(address)] = address.replace(", ", ",").replace(" ", "+")
+            route[route.index(address)] = address.replace(", ", ",").replace(" ", "+").replace("&", "and")
         embeds.append(f"https://www.google.com/maps/embed/v1/directions?key=AIzaSyDE2qaxHADLeBQO1zLqfDIasLOalcHWHi0&origin={depot}&destination={depot}&waypoints={'|'.join(route)}")
     return embeds
 
