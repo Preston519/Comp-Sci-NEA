@@ -15,7 +15,7 @@ class Graph:
         self.depot = depot
         self.nodes = nodes
 
-    def add_dist_edge(self, node1, node2, weight):
+    def add_dist_edge(self, node1, node2, weight) -> None:
         """Adds an edge on the distance graph, directed from node1 to node2"""
         if node1 not in self.dist_graph:
             self.dist_graph[node1] = {}
@@ -27,7 +27,7 @@ class Graph:
             self.time_graph[node1] = {}
         self.time_graph[node1][node2] = weight
 
-    def calc_distance(self, route: list):
+    def calc_distance(self, route: list) -> int:
         """Adds up all the distance weights of one route"""
         distance = 0
         for address_index in range(len(route)-1):
@@ -35,7 +35,7 @@ class Graph:
         distance += self.dist_graph[self.depot][route[0]] + self.dist_graph[route[-1]][self.depot]
         return distance
     
-    def calc_time(self, route: list):
+    def calc_time(self, route: list) -> int:
         """Adds up all the time weights of one route"""
         time = 0
         for address_index in range(len(route)-1):
@@ -43,23 +43,23 @@ class Graph:
         time += self.time_graph[self.depot][route[0]] + self.time_graph[route[-1]][self.depot]
         return time
     
-    def find_distance(self, address1, address2):
+    def find_distance(self, address1, address2) -> int:
         """Edge from address1 to address2 on dist_graph"""
         return self.dist_graph[address1][address2]
     
-    def dist_edges(self, address1):
+    def dist_edges(self, address1) -> dict:
         """Returns a dict of edge weights from address1 to all other nodes"""
         return self.dist_graph[address1]
     
-    def find_time(self, address1, address2):
+    def find_time(self, address1, address2) -> int:
         """Edge from address1 to address2 on time_graph"""
         return self.time_graph[address1][address2]
     
-    def time_edges(self, address1):
+    def time_edges(self, address1) -> dict:
         """Returns a dict of edge weights from address1 to all other nodes"""
         return self.time_graph[address1]
     
-    def create_graph(self):
+    def create_graph(self) -> None:
         gmaps = googlemaps.Client(key="AIzaSyDE2qaxHADLeBQO1zLqfDIasLOalcHWHi0")
         self.nodes.append(self.depot)
         
@@ -70,25 +70,25 @@ class Graph:
                 if not all(result["origin_addresses"]):
                     for num, address in enumerate(result["origin_addresses"]):
                         if not address:
-                            raise Exception("Address not found: " + str(splitChunk1[num]))
+                            raise Exception("Address not found: " + splitChunk1[num])
                 elif not all(result["destination_addresses"]):
                     for num, address in enumerate(result["destination_addresses"]):
                         if not address:
-                            raise Exception("Address not found: " + str(splitChunk2[num]))
+                            raise Exception("Address not found: " + splitChunk2[num])
                 for num1, row in enumerate(result["rows"]):
                     for num2, element, in enumerate(row["elements"]):
                         if splitChunk1[num1] == splitChunk2[num2]:
                             continue
                         elif element["status"] == "ZERO_RESULTS":
-                            raise Exception("No route found between" + str(splitChunk1[num]) + "and" + str(splitChunk2[num]))
+                            raise Exception("No route found between" + splitChunk1[num] + "and" + splitChunk2[num])
                         self.add_dist_edge(splitChunk1[num1], splitChunk2[num2], element["distance"]["value"])
                         self.add_time_edge(splitChunk1[num1], splitChunk2[num2], element["duration"]["value"])                
         self.nodes.pop()
 
-    def get_nodes(self):
+    def get_nodes(self) -> list:
         return self.nodes
     
-    def get_depot(self):
+    def get_depot(self) -> str:
         return self.depot
     
 @app.route('/', methods=['GET', 'POST'])
@@ -117,7 +117,6 @@ def index():
             password = cursor.execute("SELECT Password FROM login WHERE Username=?", (request.form["username"],)).fetchone()
             if password == None or not bcrypt.checkpw(request.form["password"].encode("utf-8"), password[0]):
                 return render_template("index.html", error="Incorrect username or password")
-                
         session["username"] = request.form["username"]
         return redirect('/input')
     return render_template("index.html")
@@ -180,7 +179,7 @@ def mapdisplay():
     embeds = routes_to_embed(([x[2] for x in y]for y in routes), depot)
     return render_template('mapdisplay.html', maps=embeds, data=data, len=len(data), routes=routes, username=session["username"])
 
-def processing(nodes: list, depot: str, constraint: str, maximum: int,):
+def processing(nodes: list, depot: str, constraint: str, maximum: int,) -> None:
     """Creates a graph with provided nodes and depot, then applies heuristic based on constraint and maximum. No returns, all in SQL"""
     graph = Graph(nodes=nodes, depot=depot)
     graph.create_graph()
@@ -199,13 +198,13 @@ def processing(nodes: list, depot: str, constraint: str, maximum: int,):
     connection.commit() # ALWAYS COMMIT dangit
     connection.close()
 
-def fetch_data():
+def fetch_data() -> tuple[list[list[tuple]], list, str]:
     """Gets display data from SQL. Data: list(list(tuple)), routes: list, depot: str"""
     connection = sqlite3.connect("addresses.db")
     cursor = connection.cursor()
     username = session["username"]
     routeAmt = len(cursor.execute('SELECT RouteID FROM "{}_routes"'.format(username)).fetchall())
-    routes = [[] for _ in range(routeAmt)] # If you use multiplication here it does pointer magic and makes them all the same list because mutable
+    routes = [[] for _ in range(routeAmt)] # If you use multiplication here it does pointer magic and makes them all the same list because mutable data structure
     data = []
     response = cursor.execute('SELECT RouteID, Address, PersonID, Name FROM "{}_addresses" ORDER BY RouteID, RouteOrder'.format(username)).fetchall()
     if not response:
@@ -223,7 +222,7 @@ def fetch_data():
     connection.close()
     return data, routes, depot
 
-def routes_to_embed(routes: list[list[str]], depot: str):
+def routes_to_embed(routes: list[list[str]], depot: str) -> list[str]:
     """Turns a list of routes into a list of embed URLs"""
     embeds = []
     depot = depot.replace(", ", ",").replace(" ", "+").replace("&", "and")
@@ -243,6 +242,7 @@ def reset_page():
         cursor.execute('DELETE FROM "{}_addresses"'.format(session['username']))
         connection.commit()
         connection.close()
+        return redirect("/input")
     return redirect("/")
 
 @app.route('/logout')

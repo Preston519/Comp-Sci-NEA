@@ -65,9 +65,8 @@ class Savings(Heuristic):
                         self._savings[(node1, node2)] = self._graph.find_time(node1, self._graph.get_depot()) + self._graph.find_time(self._graph.get_depot(), node2) - self._graph.find_time(node1,node2)
                     else:
                         self._savings[(node1, node2)] = self._graph.find_distance(node1, self._graph.get_depot()) + self._graph.find_distance(self._graph.get_depot(), node2) - self._graph.find_distance(node1, node2)
-        print(sorted(self._savings))
 
-    def is_in_route(self, pair: tuple):
+    def is_in_route(self, pair: tuple) -> tuple[list[bool], list[int]]:
         in_route = [False, False]
         indexes = [None, None]
         for num in range(2):
@@ -78,14 +77,14 @@ class Savings(Heuristic):
                         in_route[num] = True
         return in_route, indexes
     
-    def is_interior(self, pair: tuple, indexes: list):
+    def is_interior(self, pair: tuple, indexes: list) -> bool:
         """Returns True if one point is interior to a route"""
         for i in range(2):
             if 0 < self._routes[indexes[i]].index(pair[i]) < len(self._routes[indexes[i]])-1:
                 return True
         return False
     
-    def check_constraint(self, indexes: list, current: tuple):
+    def check_constraint(self, indexes: list, current: tuple) -> bool:
         """Returns True if constraints are breached"""
         if self._constraint == "capacity":
             return len(self._routes[indexes[0]]) + len(self._routes[indexes[1]]) > self._maximum
@@ -96,7 +95,7 @@ class Savings(Heuristic):
         else:
             raise Exception("Invalid constraint")
         
-    def merge(self, indexes: list, link: tuple):
+    def merge(self, indexes: list, link: tuple) -> list:
         """Merges two routes together as part of saving method"""
         route0 = self._routes[indexes[0]] # Assigning temporary variables to not modify original routes
         route1 = self._routes[indexes[1]]
@@ -130,7 +129,7 @@ class TwoOpt(Heuristic):
                         best_distance = new_distance
             self._routes[num] = current_route
     
-    def swap(self, listIndex: int, first: int, second: int):
+    def swap(self, listIndex: int, first: int, second: int) -> tuple[list, int]:
         """Swaps the points at indexes first and second in the route"""
         if first == second:
             return self._routes[listIndex]
@@ -168,7 +167,7 @@ class Interchange(Heuristic):
                 self._routes[num1] = route1
                 self._routes[num2] = route2
 
-    def interchange_swap(self, route1: list, route2: list, first: int, second: int):
+    def interchange_swap(self, route1: list, route2: list, first: int, second: int) -> list[list]:
         new_routes = [route1[:first+1] + route2[second+1:], route2[:second+1] + route1[second+1], 0]
         for num in range(2):
             if self._constraint == "time":
