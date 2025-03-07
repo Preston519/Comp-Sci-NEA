@@ -48,11 +48,14 @@
 # print(salt)
 # print(bcrypt.checkpw(b"", hashpw))
 # print("".encode('utf-8'))
-import sqlite3
-connection = sqlite3.connect("addresses.db")
-cursor = connection.cursor()
+# import sqlite3
+# connection = sqlite3.connect("addresses.db")
+# cursor = connection.cursor()
 # print(str(cursor.execute("SELECT Password FROM login WHERE Username=?", ("keke",)).fetchone()))
 # print(str(None))
 # cursor.execute("INSERT INTO login VALUES(?, ?)", (b"test", b"test2"))
 # connection.commit()
-print(cursor.execute("SELECT Username, Password FROM login").fetchall())
+# print(cursor.execute("SELECT Username, Password FROM login").fetchall())
+print('a')
+input()
+print('b')

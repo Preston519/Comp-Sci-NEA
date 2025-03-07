@@ -121,9 +121,9 @@ class TwoOpt(Heuristic):
         for num, route in enumerate(self._routes):
             best_distance = self._graph.calc_time(route) if self._constraint == "time" else self._graph.calc_distance(route)
             current_route = route
-            for i in range(len(route[1:-2])):
-                for j in range(len(route[i+1:-1])):
-                    new_route, new_distance = self.swap(num, i+1, j+i+2)
+            for i in range(len(route[:-1])):
+                for j in range(len(route[i+1:])):
+                    new_route, new_distance = self.swap(num, i, j+i+1)
                     if new_distance < best_distance:
                         current_route = new_route
                         best_distance = new_distance
@@ -157,10 +157,15 @@ class Interchange(Heuristic):
                     best_distance = self._graph.calc_time(route1) + self._graph.calc_time(route2)
                 else:
                     best_distance = self._graph.calc_distance(route1) + self._graph.calc_distance(route2)
-                for i in range(len(route1)-1):
-                    for j in range(len(route2)-1):
+                for i in range(len(route1)):
+                    for j in range(len(route2)):
                         new_route1, new_route2, new_distance = self.interchange_swap(route1, route2, i, j)
                         if new_distance < best_distance:
+                            if self._constraint == "time":
+                                if self._graph.calc_time(new_route1) > self._maximum*60 and self._graph.calc_time(new_route2) > self._maximum*60:
+                                    continue
+                            elif self._graph.calc_distance(new_route1) > self._maximum and self._graph.calc_distance(new_route2) > self._maximum:
+                                continue
                             route1 = new_route1
                             route2 = new_route2
                             best_distance = new_distance
@@ -168,7 +173,7 @@ class Interchange(Heuristic):
                 self._routes[num2] = route2
 
     def interchange_swap(self, route1: list, route2: list, first: int, second: int) -> list[list]:
-        new_routes = [route1[:first+1] + route2[second+1:], route2[:second+1] + route1[second+1], 0]
+        new_routes = [route1[:first+1] + route2[second+1:], route2[:second+1] + route1[first+1:], 0]
         for num in range(2):
             if self._constraint == "time":
                 distance = self._graph.calc_time(new_routes[num])
