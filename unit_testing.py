@@ -1,4 +1,3 @@
-import unittest
 from final_heuristics import Savings, Interchange, TwoOpt
 from finalised import Graph
 
@@ -7,14 +6,16 @@ graph = Graph(nodes=['John Mason School, Wootton Rd, Abingdon'], depot='Abingdon
 graph.create_graph()
 print(graph.dist_graph)
 print(graph.time_graph)
+print()
 
 input()
 
-graph = Graph(nodes=['St. Helens Church, St Helens Ct, Abingdon', 'Nags Head, The Bridge, Abingdon'], depot='Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ')
+graph1 = Graph(nodes=['St. Helens Church, St Helens Ct, Abingdon', 'Nags Head, The Bridge, Abingdon'], depot='Abingdon School, Faringdon Lodge, Abingdon OX14 1BQ')
 
-graph.create_graph()
-print(graph.dist_graph)
-print(graph.time_graph)
+graph1.create_graph()
+print(graph1.dist_graph)
+print(graph1.time_graph)
+print()
 
 input()
 
@@ -24,6 +25,7 @@ test = Savings(testgraph, "distance", 30000)
 test.execute()
 for route in test.get_routes():
     print(f'{route} - Distance: {testgraph.calc_distance(route)}')
+print()
 
 input()
     
@@ -31,6 +33,7 @@ test1 = Savings(testgraph, "time", 50) # Time is in minutes
 test1.execute()
 for route in test1.get_routes():
     print(f'{route} - Time: {testgraph.calc_time(route)/60}')
+print()
 
 input()
 
@@ -38,6 +41,7 @@ test2 = Savings(testgraph, "capacity", 3)
 test2.execute()
 for route in test2.get_routes():
     print(f'{route} - Capacity: {len(route)}, Distance: {testgraph.calc_distance(route)}')
+print()
 
 input()
 
@@ -58,6 +62,7 @@ twoopt.execute()
 print(f'{route1} - Time: {graph.calc_time(route1)}')
 new_route = twoopt.get_routes()[0]
 print(f'{new_route} - Time: {graph.calc_time(new_route)}')
+print()
 
 input()
 
@@ -70,3 +75,4 @@ interchange.execute()
 print()
 for route in interchange.get_routes():
     print(f'{route} - Distance: {graph.calc_distance(route)}')
+print()

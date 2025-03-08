@@ -9,11 +9,11 @@ import bcrypt
 app = Flask(__name__)
 
 class Graph:
-    def __init__(self, time_graph: dict = {}, dist_graph: dict = {}, nodes: list = [], depot: str = ""):
-        self.time_graph = time_graph
-        self.dist_graph = dist_graph
+    def __init__(self, nodes: list, depot: str, time_graph: dict = None, dist_graph: dict = None):
+        self.time_graph = time_graph if time_graph else dict()
+        self.dist_graph = dist_graph if dist_graph else dict()
         self.depot = depot
-        self.nodes = nodes
+        self.nodes = nodes if nodes else []
 
     def add_dist_edge(self, node1, node2, weight) -> None:
         """Adds an edge on the distance graph, directed from node1 to node2"""
