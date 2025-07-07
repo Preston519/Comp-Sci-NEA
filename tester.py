@@ -56,6 +56,17 @@
 # cursor.execute("INSERT INTO login VALUES(?, ?)", (b"test", b"test2"))
 # connection.commit()
 # print(cursor.execute("SELECT Username, Password FROM login").fetchall())
-print('a')
-input()
-print('b')
+class Test:
+    def __init__(self, abc = None):
+        self.abc = abc if abc else {}
+    
+    def add_thing(self, data, data1):
+        self.abc[data] = data1
+
+a = Test()
+b = Test()
+
+a.add_thing("a", "b")
+print(a.abc)
+b.add_thing("c", "d")
+print(a.abc)

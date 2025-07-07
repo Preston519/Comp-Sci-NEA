@@ -60,7 +60,7 @@ class Graph:
         return self.time_graph[address1]
     
     def create_graph(self) -> None:
-        gmaps = googlemaps.Client(key="AIzaSyDE2qaxHADLeBQO1zLqfDIasLOalcHWHi0")
+        gmaps = googlemaps.Client(key="EXAMPLEKEY")
         self.nodes.append(self.depot)
         
         splitNodes = [self.nodes[i:i+10] for i in range(0, len(self.nodes), 10)]
